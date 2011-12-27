@@ -1,0 +1,77 @@
+div.number-spin-btn-container {
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
+  margin: 0;
+  padding: 0;
+}
+
+div.number-spin-btn {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  border: 2px outset #CCCCCC;
+  background-color: #CCCCCC;
+  width: 1.2em;
+}
+
+div.number-spin-btn-up {
+  border-bottom-width: 1px;
+  -webkit-border-radius: 3px 3px 0px 0px;
+  border-radius: 3px 3px 0px 0px;
+}
+
+div.number-spin-btn-up:before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-width: 0 0.3em 0.3em 0.3em;
+  border-style: solid;
+  border-color: transparent transparent black transparent;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  margin: -0.15em 0 0 -0.3em;
+  padding: 0;
+}
+
+div.number-spin-btn-down {
+  border-top-width: 1px;
+  -webkit-border-radius: 0px 0px 3px 3px;
+  border-radius: 0px 0px 3px 3px;
+}
+
+div.number-spin-btn-down:before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-width: 0.3em 0.3em 0 0.3em;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+  position: absolute;
+  top: 75%;
+  left: 50%;
+  margin: -0.15em 0 0 -0.3em;
+  padding: 0;
+}
+
+div.number-spin-btn:hover {
+  cursor: pointer;
+}
+
+div.number-spin-btn:active {
+  border: 2px inset #999999;
+  background-color: #999999;
+}
+
+div.number-spin-btn-up:active:before {
+  border-color: transparent transparent white transparent;
+  top: 26%;
+  left: 51%;
+}
+
+div.number-spin-btn-down:active:before {
+  border-color: white transparent transparent transparent;
+  top: 76%;
+  left: 51%;
+}
