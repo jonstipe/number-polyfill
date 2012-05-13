@@ -139,7 +139,7 @@ $(function(){
 	    increment(this);
 	  } else if (event.keyCode == 40) { // down arrow
 	    decrement(this);
-	  } else if (([8, 35, 36, 37, 39].indexOf(event.keyCode) == -1) &&
+	  } else if (([8, 9, 35, 36, 37, 39].indexOf(event.keyCode) == -1) &&
 		     ([45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57].indexOf(event.which) == -1)) {
 	    event.preventDefault();
 	  }
