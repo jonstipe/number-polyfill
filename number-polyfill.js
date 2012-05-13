@@ -119,7 +119,7 @@ $(function(){
 
       $(elem).bind({
 	DOMMouseScroll: function(event) {
-	  if (event.detail < 0) {
+	  if (event.originalEvent.detail < 0) {
 	    increment(this);
 	  } else {
 	    decrement(this);
