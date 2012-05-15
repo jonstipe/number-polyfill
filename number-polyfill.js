@@ -86,7 +86,7 @@ $(function(){
       if (params['max'] !== undefined && newVal > params['max']) newVal = params['max'];
       newVal = matchStep(newVal, params['min'], params['max'], params['step']);
 
-      $(elem).val(newVal);
+      $(elem).val(newVal).change();
     };
     
     var decrement = function(elem, amt) {
@@ -97,7 +97,7 @@ $(function(){
       if (params['min'] !== undefined && newVal < params['min']) newVal = params['min'];
       newVal = matchStep(newVal, params['min'], params['max'], params['step']);
 
-      $(elem).val(newVal);
+      $(elem).val(newVal).change();
     };
 
     $('input[type="number"]').each(function(index) {
