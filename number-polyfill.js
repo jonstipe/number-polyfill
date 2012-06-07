@@ -8,7 +8,8 @@ $(function(){
       var max = $(elem).attr('max');
       max = /^-?\d+(?:\.\d+)?$/.test(max) ? parseFloat(max) : undefined;
 
-      var val = parseFloat($(elem).val()) || (min || 0);
+      var val = parseFloat($(elem).val())
+      if (isNaN(val)) val = min || 0;
 
       return {
 	min: min,
@@ -47,18 +48,18 @@ $(function(){
       if (step === undefined) {
 	return value;
       } else if (stepDecimalDigits == 0) {
-	var mod = (value - (min || 0)) % step;
-	if (mod == 0) {
-	  return value;
-	} else {
-	  var stepDown = value - mod;
-	  var stepUp = stepDown + step;
-	  if ((stepUp > max) || ((value - stepDown) < (stepUp - value))) {
-	    return stepDown;
-	  } else {
-	    return stepUp;
-	  }
-	}
+        var mod = (value - (min || 0)) % step;
+        if (mod == 0) {
+          return value;
+        } else {
+          var stepDown = value - mod;
+          var stepUp = stepDown + step;
+          if ((stepUp > max) || ((value - stepDown) < (stepUp - value))) {
+            return stepDown;
+          } else {
+            return stepUp;
+          }
+        }
       } else {
 	var raiseTo = Math.pow(10, stepDecimalDigits);
 	var raisedStep = step * raiseTo;
@@ -88,8 +89,8 @@ $(function(){
 
       $(elem).val(newVal);
     };
-    
-    var decrement = function(elem, amt) {
+
+    var decrement = function(elem) {
       var params = getParams(elem);
       var raiseTo = Math.pow(10, Math.max(extractNumDecimalDigits(params['val']), extractNumDecimalDigits(params['step'])));
       var newVal = (Math.round(params['val'] * raiseTo) - Math.round((params['step'] || 1) * raiseTo)) / raiseTo;
@@ -119,7 +120,7 @@ $(function(){
 
       $(elem).bind({
 	DOMMouseScroll: function(event) {
-	  if (event.detail < 0) {
+	  if (event.originalEvent.detail < 0) {
 	    increment(this);
 	  } else {
 	    decrement(this);
@@ -139,7 +140,7 @@ $(function(){
 	    increment(this);
 	  } else if (event.keyCode == 40) { // down arrow
 	    decrement(this);
-	  } else if (([8, 35, 36, 37, 39].indexOf(event.keyCode) == -1) &&
+	  } else if (([8, 9, 35, 36, 37, 39].indexOf(event.keyCode) == -1) &&
 		     ([45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57].indexOf(event.which) == -1)) {
 	    event.preventDefault();
 	  }
