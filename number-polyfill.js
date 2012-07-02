@@ -1,5 +1,7 @@
 $(function(){
-  if (!Modernizr.inputtypes.number) {
+  var i = document.createElement("input");
+  i.setAttribute("type", "number");
+  if (i.type == "text") {
     var getParams = function(elem) {
       var step = $(elem).attr('step');
       step = /^-?\d+(?:\.\d+)?$/.test(step) ? parseFloat(step) : undefined;
