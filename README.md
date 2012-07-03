@@ -15,7 +15,7 @@ A default CSS file is provided. You may edit this file to style the buttons to m
 
 This script requires jQuery[http://jquery.com/].
 
-## LICENSE (MIT)
+## License (MIT)
 Copyright (c) 2011 Jonathan Stipe
 
 Permission is hereby granted, free of charge, to any person obtaining
