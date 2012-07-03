@@ -15,6 +15,9 @@ A default CSS file is provided. You may edit this file to style the buttons to m
 
 This script requires jQuery[http://jquery.com/].
 
+## Demo
+http://sillero.github.com/number-polyfill
+
 ## License (MIT)
 Copyright (c) 2011 Jonathan Stipe
 
