@@ -5,15 +5,14 @@
 		i.setAttribute("type", "number");
 		if (i.type == "text") {
 			var getParams = function (elem) {
-					var step = $(elem).attr('step');
-					step = /^-?\d+(?:\.\d+)?$/.test(step) ? parseFloat(step) : undefined;
-					var min = $(elem).attr('min');
+					var step = $(elem).attr('step'),
+						min = $(elem).attr('min'),
+						max = $(elem).attr('max'),
+						val = parseFloat($(elem).val());
+					step = /^-?\d+(?:\.\d+)?$/.test(step) ? parseFloat(step) : undefined;					
 					min = /^-?\d+(?:\.\d+)?$/.test(min) ? parseFloat(min) : undefined;
-					var max = $(elem).attr('max');
 					max = /^-?\d+(?:\.\d+)?$/.test(max) ? parseFloat(max) : undefined;
-
-					var val = parseFloat($(elem).val())
-					if (isNaN(val)) val = min || 0;
+					val = isNaN(val) ? min || 0 : val;
 
 					return {
 						min: min,
@@ -38,7 +37,9 @@
 							raisedNum = input * Math.pow(10, num);
 						}
 						return num;
-					} else return 0;
+					}
+					else
+						return 0;
 				}
 
 			var matchStep = function (value, min, max, step) {
@@ -122,7 +123,8 @@
 							increment(this);
 						else if (e.keyCode == 40) // down arrow
 							decrement(this);
-						else if (([8, 9, 35, 36, 37, 39].indexOf(e.keyCode) == -1) && ([45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57].indexOf(e.which) == -1)) e.preventDefault();
+						else if (([8, 9, 35, 36, 37, 39].indexOf(e.keyCode) == -1) && ([45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57].indexOf(e.which) == -1))
+							e.preventDefault();
 					},
 					change: function (e) {
 						if (e.originalEvent !== undefined) {
