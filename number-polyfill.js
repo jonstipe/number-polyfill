@@ -180,7 +180,7 @@
 						elem.timeoutID = window.setTimeout(timeoutFunc, 700, elem, decrement);
 					}
 				});
-				$(this).css({ textAlign: right });
+				$(this).css({ textAlign: 'right' });
 			});
 		}
 	});
