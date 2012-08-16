@@ -1,3 +1,4 @@
+/*! HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-polyfill*/
 div.number-spin-btn-container {
   display: inline-block;
   position: relative;
@@ -65,13 +66,13 @@ div.number-spin-btn:active {
 }
 
 div.number-spin-btn-up:active:before {
-  border-color: transparent transparent white transparent;
+  border-bottom-color: white;
   top: 26%;
   left: 51%;
 }
 
 div.number-spin-btn-down:active:before {
-  border-color: white transparent transparent transparent;
+  border-top-color: white;
   top: 76%;
   left: 51%;
 }
