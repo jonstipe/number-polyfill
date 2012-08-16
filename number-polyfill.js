@@ -89,7 +89,7 @@
       $(elem).val(newVal).change();
     };
 
-    return $(this).each(function () {
+    return $(this).filter('input[type="number"]').each(function () {
       var elem = this,
           $elem = $(elem),
           halfHeight = ($elem.outerHeight() / 2) + 'px',

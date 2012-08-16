@@ -11,6 +11,10 @@ If the script detects that the browser doesn't support `<input type="number">`, 
 
 A default CSS file is provided. You may edit this file to style the buttons to make them look the way you want.
 
+## Manual usage
+
+The script can also be called manually as a jQuery plugin for elements dynamically generated through script. Simply call the `.inputNumber()` method on any jQuery object containing one or more `<input type="number">` elements.
+
 ## Dependencies
 
 This script requires jQuery[http://jquery.com/].
