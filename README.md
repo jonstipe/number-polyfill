@@ -23,6 +23,10 @@ This script requires jQuery[http://jquery.com/].
 
 http://jonstipe.github.com/number-polyfill/index.html
 
+## See also
+
+[Compatibility chart for input number elements](http://caniuse.com/input-number)
+
 ## License (MIT)
 Copyright (c) 2011 Jonathan Stipe
 
