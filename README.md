@@ -19,6 +19,10 @@ The script can also be called manually as a jQuery plugin for elements dynamical
 
 This script requires jQuery[http://jquery.com/].
 
+## Demo
+
+http://jonstipe.github.com/number-polyfill/index.html
+
 ## License (MIT)
 Copyright (c) 2011 Jonathan Stipe
 
