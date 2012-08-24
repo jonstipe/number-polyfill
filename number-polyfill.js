@@ -75,7 +75,7 @@
       if (params['max'] !== undefined && newVal > params['max']) newVal = params['max'];
       newVal = matchStep(newVal, params['min'], params['max'], params['step']);
 
-      $(elem).val(newVal).change();
+      if (!$(elem).is(":disabled")) $(elem).val(newVal).change();
     };
 
     var decrement = function (elem) {
@@ -86,10 +86,10 @@
       if (params['min'] !== undefined && newVal < params['min']) newVal = params['min'];
       newVal = matchStep(newVal, params['min'], params['max'], params['step']);
 
-      $(elem).val(newVal).change();
+      if (!$(elem).is(":disabled")) $(elem).val(newVal).change();
     };
 
-    return $(this).filter('input[type="number"]').each(function () {
+    return $(this).filter('input[type="number"]:visible').each(function () {
       var elem = this,
           $elem = $(elem),
           halfHeight = ($elem.outerHeight() / 2) + 'px',
