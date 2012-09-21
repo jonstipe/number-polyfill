@@ -21,7 +21,7 @@ This script requires jQuery[http://jquery.com/].
 
 ## Demo
 
-http://jonstipe.github.com/number-polyfill/index.html
+http://jonstipe.github.com/number-polyfill/demo.html
 
 ## See also
 
