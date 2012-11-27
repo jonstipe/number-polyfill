@@ -97,6 +97,21 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           $(elem).val(newVal).change()
         null
   
+      domMouseScrollHandler = (e) ->
+        e.preventDefault()
+        if e.originalEvent.detail < 0
+          increment this
+        else
+          decrement this
+        null
+      mouseWheelHandler = (e) ->
+        e.preventDefault()
+        if e.originalEvent.wheelDelta > 0
+          increment this
+        else
+          decrement this
+        null
+
       $(this).filter('input[type="number"]').each ->
         elem = this
         $elem = $(elem)
@@ -115,21 +130,17 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
         btnContainer.appendChild upBtn
         btnContainer.appendChild downBtn
         $(btnContainer).addClass('number-spin-btn-container').insertAfter elem
-  
+
         $elem.on
-          DOMMouseScroll: (e) ->
-            e.preventDefault()
-            if e.originalEvent.detail < 0
-              increment this
-            else
-              decrement this
+          focus: (e) ->
+            $elem.on
+              DOMMouseScroll: domMouseScrollHandler
+              mousewheel: mouseWheelHandler
             null
-          mousewheel: (e) ->
-            e.preventDefault()
-            if e.originalEvent.wheelDelta > 0
-              increment this
-            else
-              decrement this
+          blur: (e) ->
+            $elem.off
+              DOMMouseScroll: domMouseScrollHandler
+              mousewheel: mouseWheelHandler
             null
           keypress: (e) ->
             if e.keyCode == 38 # up arrow
