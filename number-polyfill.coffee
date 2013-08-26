@@ -23,7 +23,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           step: step
           val: val
         }
-  
+
       clipValues = (value, min, max) ->
         if max? && value > max
           max
@@ -31,7 +31,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           min
         else
           value
-  
+
       extractNumDecimalDigits = (input) ->
         if input?
           num = 0
@@ -42,7 +42,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           num
         else
           0
-  
+
       matchStep = (value, min, max, step) ->
         stepDecimalDigits = extractNumDecimalDigits step
         unless step?
@@ -72,31 +72,31 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
               raisedStepDown / raiseTo
             else
               raisedStepUp / raiseTo
-  
+
       increment = (elem) ->
         unless $(elem).is(":disabled")
           params = getParams elem
           raiseTo = Math.pow 10, Math.max(extractNumDecimalDigits(params['val']), extractNumDecimalDigits(params['step']))
           newVal = (Math.round(params['val'] * raiseTo) + Math.round((params['step'] || 1) * raiseTo)) / raiseTo
-    
+
           newVal = params['max'] if params['max']? && newVal > params['max']
           newVal = matchStep newVal, params['min'], params['max'], params['step']
-    
+
           $(elem).val(newVal).change()
         null
-  
+
       decrement = (elem) ->
         unless $(elem).is(":disabled")
           params = getParams elem
           raiseTo = Math.pow 10, Math.max(extractNumDecimalDigits(params['val']), extractNumDecimalDigits(params['step']))
           newVal = (Math.round(params['val'] * raiseTo) - Math.round((params['step'] || 1) * raiseTo)) / raiseTo
-    
+
           newVal = params['min'] if params['min']? && newVal < params['min']
           newVal = matchStep newVal, params['min'], params['max'], params['step']
-    
+
           $(elem).val(newVal).change()
         null
-  
+
       domMouseScrollHandler = (e) ->
         e.preventDefault()
         if e.originalEvent.detail < 0
@@ -153,49 +153,49 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           change: (e) ->
             if e.originalEvent?
               params = getParams this
-  
+
               newVal = clipValues params['val'], params['min'], params['max']
               newVal = matchStep newVal, params['min'], params['max'], params['step'], params['stepDecimal']
-  
+
               $(this).val newVal
             null
-  
+
         $upBtn.on "mousedown", (e) ->
           increment elem
-  
+
           timeoutFunc = (elem, incFunc) ->
             incFunc elem
             $elem.data "timeoutID", window.setTimeout(timeoutFunc, 10, elem, incFunc)
             null
-  
+
           releaseFunc = (e) ->
             window.clearTimeout $elem.data("timeoutID")
             $(document).off 'mouseup', releaseFunc
             $upBtn.off 'mouseleave', releaseFunc
             null
-  
+
           $(document).on 'mouseup', releaseFunc
           $upBtn.on 'mouseleave', releaseFunc
-  
+
           $elem.data "timeoutID", window.setTimeout(timeoutFunc, 700, elem, increment)
           null
         $downBtn.on "mousedown", (e) ->
           decrement elem
-  
+
           timeoutFunc = (elem, decFunc) ->
             decFunc elem
             $elem.data "timeoutID", window.setTimeout(timeoutFunc, 10, elem, decFunc)
             null
-  
+
           releaseFunc = (e) ->
             window.clearTimeout $elem.data("timeoutID")
             $(document).off 'mouseup', releaseFunc
             $downBtn.off 'mouseleave', releaseFunc
             null
-  
+
           $(document).on 'mouseup', releaseFunc
           $downBtn.on 'mouseleave', releaseFunc
-  
+
           $elem.data "timeoutID", window.setTimeout(timeoutFunc, 700, elem, decrement)
           null
         $elem.css "textAlign", 'right'
