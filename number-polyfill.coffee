@@ -147,7 +147,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
               increment this
             else if e.keyCode == 40 # down arrow
               decrement this
-            else if (e.keyCode not in [8, 9, 35, 36, 37, 39]) && (e.which not in [45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57])
+            else if (e.keyCode not in [8, 9, 35, 36, 37, 39, 46]) && (e.which not in [45, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57])
               e.preventDefault()
             null
           change: (e) ->

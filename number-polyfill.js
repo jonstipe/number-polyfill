@@ -127,6 +127,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
             increment(this);
           } else {
             decrement(this);
+            } else if (((_ref = e.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39 && _ref !== 46) && ((_ref1 = e.which) !== 45 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
           }
           return null;
         };
@@ -175,7 +176,6 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
                 increment(this);
               } else if (e.keyCode === 40) {
                 decrement(this);
-              } else if (((_ref = e.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39) && ((_ref1 = e.which) !== 45 && _ref1 !== 46 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
                 e.preventDefault();
               }
               return null;
