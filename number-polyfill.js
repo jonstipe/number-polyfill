@@ -6,7 +6,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
 
 (function() {
   (function($) {
-    var i, numberPolyfill;
+    var decimalNum, i, numberPolyfill;
     i = document.createElement("input");
     i.setAttribute("type", "number");
     if (i.type === "text") {
@@ -17,6 +17,74 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           numberPolyfill.polyfills.push(new numberPolyfill(this));
         });
         return $(this);
+      };
+      decimalNum = function(num, precision) {
+        var r, rNum;
+        if (precision == null) {
+          if (typeof num === 'object' && num.constructor === decimalNum) {
+            this.num = num.num;
+            this.precision = num.precision;
+          } else if (typeof num === 'number' || (typeof num === 'object' && num.constructor === Number)) {
+            rNum = num;
+            r = 0;
+            while (rNum > Math.floor(rNum)) {
+              rNum = num * Math.pow(10, r++);
+            }
+            this.num = rNum;
+            this.precision = r;
+          }
+        } else {
+          this.num = num;
+          this.precision = precision;
+        }
+      };
+      decimalNum.prototype.raise = function(digits) {
+        this.num = this.num * Math.pow(10, digits);
+        this.precision += digits;
+      };
+      decimalNum.prototype.add = function(other_num) {
+        var sum;
+        other_num = new decimalNum(other_num);
+        if (this.precision > other_num.precision) {
+          other_num.raise(this.precision - other_num.precision);
+        } else if (this.precision < other_num.precision) {
+          this.raise(other_num.precision - this.precision);
+        }
+        sum = new decimalNum(this.num + other_num.num, this.precision);
+        sum.reduce();
+        return sum;
+      };
+      decimalNum.prototype.subtract = function(other_num) {
+        var diff;
+        other_num = new decimalNum(other_num);
+        if (this.precision > other_num.precision) {
+          other_num.raise(this.precision - other_num.precision);
+        } else if (this.precision < other_num.precision) {
+          this.raise(other_num.precision - this.precision);
+        }
+        diff = new decimalNum(this.num - other_num.num, this.precision);
+        diff.reduce();
+        return diff;
+      };
+      decimalNum.prototype.reduce = function() {
+        var r;
+        r = 0;
+        while (this.num % Math.pow(10, r) === 0 && r < this.precision) {
+          r++;
+        }
+        if (r > 0) {
+          this.num = this.num / Math.pow(10, r);
+          this.precision -= r;
+        }
+      };
+      decimalNum.prototype.toFloat = function() {
+        return this.num / Math.pow(10, this.precision);
+      };
+      decimalNum.prototype.toString = function() {
+        return this.toFloat().toString();
+      };
+      decimalNum.prototype.mod = function(num) {
+        return this.toFloat() % num;
       };
       numberPolyfill = function(elem) {
         var $btnContainer, $fieldContainer, attrMutationCallback, attrObserver, domMouseScrollHandler, halfHeight, mouseWheelHandler,
@@ -78,7 +146,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
               _this.increment();
             } else if (e.keyCode === 40) {
               _this.decrement();
-            } else if (((_ref = e.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39) && ((_ref1 = e.which) !== 45 && _ref1 !== 46 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
+            } else if (((_ref = e.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39 && _ref !== 46) && ((_ref1 = e.which) !== 45 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
               e.preventDefault();
             }
           },
@@ -192,123 +260,31 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           val = min || 0;
         }
         return {
-          min: min,
-          max: max,
-          step: step,
-          val: val
+          min: new decimalNum(min),
+          max: new decimalNum(max),
+          step: new decimalNum(step),
+          val: new decimalNum(val)
         };
       };
       numberPolyfill.prototype.clipValues = function(value, min, max) {
-        if ((max != null) && value > max) {
+        if ((max != null) && value.toFloat() > max.toFloat()) {
           return max;
-        } else if ((min != null) && value < min) {
+        } else if ((min != null) && value.toFloat() < min.toFloat()) {
           return min;
         } else {
           return value;
         }
       };
-      numberPolyfill.extractNumDecimalDigits = function(value) {
-        var isFloat, isInt;
-        isFloat = /^-?\d+\.\d+$/;
-        isInt = /^-?\d+$/;
-        if (isFloat.test(value)) {
-          return /^-?\d+\.(\d+)$/.exec(value)[1].length;
-        } else if (isInt.test(value)) {
-          return 0;
-        }
-      };
       numberPolyfill.prototype.stepNormalize = function(value) {
         return value;
-      };
-      numberPolyfill.addAsStr = function(str1, str2) {
-        var add, carry, digit, digit1, digit2, isFloat, isInt, isNegative, k, output, precision1, precision2, _i, _j, _ref, _ref1;
-        isFloat = /^-?\d+(?:\.\d+)?$/;
-        isInt = /^-?\d+$/;
-        isNegative = /^-.+$/;
-        if (isFloat.test(str1) && isFloat.test(str2)) {
-          if (isInt.test(str1)) {
-            if (isInt.test(str2)) {
-              return (parseInt(str1, 10) + parseInt(str2, 10)).toString();
-            } else {
-              return numberPolyfill.addAsStr(str1 + ".0", str2);
-            }
-          } else {
-            if (isInt.test(str2)) {
-              return numberPolyfill.addAsStr(str1, str2 + ".0");
-            } else {
-              precision1 = str1.length - str1.indexOf(".") - 1;
-              precision2 = str2.length - str2.indexOf(".") - 1;
-              add = true;
-              output = "";
-              k = 0;
-              carry = 0;
-              digit = 0;
-              if (precision1 < precision2) {
-                for (i = _i = 0, _ref = precision2 - precision1; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-                  str1 = str1 + "0";
-                }
-              } else if (precision2 < precision1) {
-                for (i = _j = 0, _ref1 = precision1 - precision2; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-                  str2 = str2 + "0";
-                }
-              }
-              if ((isNegative.test(str1) && !isNegative.test(str2)) || (!isNegative.test(str1) && isNegative.test(str2))) {
-                add = false;
-              }
-              while ((k < str1.length && k < str2.length) || carry !== 0) {
-                digit1 = k < str1.length ? str1[(str1.length - 1) - k] : "0";
-                digit2 = k < str2.length ? str2[(str2.length - 1) - k] : "0";
-                if (digit1 === "-") {
-                  digit1 = "0";
-                }
-                if (digit2 === "-") {
-                  digit2 = "0";
-                }
-                if (digit1 === "." && digit2 === ".") {
-                  output = "." + output;
-                } else {
-                  digit1 = parseInt(digit1, 10);
-                  digit2 = parseInt(digit2, 10);
-                  if (add) {
-                    digit = digit1 + digit2 + carry;
-                  } else {
-                    digit = digit1 - digit2 - carry;
-                  }
-                  carry = Math.floor(digit / 10);
-                  output = (digit % 10).toString() + output;
-                }
-                k++;
-              }
-              if (isNegative.test(str1)) {
-                if (isNegative.test(str2) || (parseInt(str2, 10) < Math.abs(parseInt(str1, 10)))) {
-                  output = "-" + output;
-                }
-              } else {
-                if (isNegative.test(str2) && (Math.abs(parseInt(str2, 10)) > parseInt(str1, 10))) {
-                  output = "-" + output;
-                }
-              }
-              return output;
-            }
-          }
-        }
-      };
-      numberPolyfill.subtractAsStr = function(str1, str2) {
-        var isNegative;
-        isNegative = /^-.+$/;
-        if (isNegative.test(str2)) {
-          return numberPolyfill.addAsStr(str1, str2.slice(1));
-        } else {
-          return numberPolyfill.addAsStr(str1, "-" + str2);
-        }
       };
       numberPolyfill.prototype.increment = function() {
         var newVal, params;
         if (!this.elem.is(":disabled")) {
           console.log("increment() called.");
           params = this.getParams();
-          newVal = numberPolyfill.addAsStr(params['val'], params['step']);
-          if ((params['max'] != null) && parseFloat(newVal) > parseFloat(params['max'])) {
+          newVal = params['val'].add(params['step']);
+          if ((params['max'] != null) && newVal.toFloat() > params['max'].toFloat()) {
             newVal = params['max'];
           }
           newVal = this.stepNormalize(newVal);
@@ -320,8 +296,8 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
         if (!this.elem.is(":disabled")) {
           console.log("decrement() called.");
           params = this.getParams();
-          newVal = numberPolyfill.subtractAsStr(params['val'], params['step']);
-          if ((params['min'] != null) && parseFloat(newVal) < parseFloat(params['min'])) {
+          newVal = params['val'].subtract(params['step']);
+          if ((params['min'] != null) && newVal.toFloat() < params['min'].toFloat()) {
             newVal = params['min'];
           }
           newVal = this.stepNormalize(newVal);
