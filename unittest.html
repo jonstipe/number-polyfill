@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>HTML5 Number polyfill</title>
+    <meta name="author" content="Jonathan Stipe" />
+    <meta name="copyright" content="&copy; 2012 Jonathan Stipe" />
+    <link rel="stylesheet" type="text/css" href="vendor/qunit/qunit-1.12.0.css" />
+    <link rel="stylesheet" type="text/css" href="number-polyfill.css" />
+    <style type="text/css">
+.hiddenClass {
+  visibility: hidden;
+}
+
+.opacityZero {
+  opacity: 0;
+}
+
+.opacityHalf {
+  opacity: 0.5;
+}
+
+.opacityOne {
+  opacity: 1;
+}
+
+.noneClass {
+  display: none;
+}
+    </style>
+    <script type="text/javascript" src="vendor/jquery/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="number-polyfill.js"></script>
+    <script type="text/javascript">
+//<![CDATA[
+$(function(){
+  $("<script/>", { type: "text/javascript", src: "test/spec.js" }).appendTo("head");
+});
+//]]>
+    </script>
+    <script type="text/javascript" src="vendor/qunit/qunit-1.12.0.js"></script>
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<a href="https://github.com/jonstipe/number-polyfill">Back to GitHub repo</a>
+</body>
+</html>

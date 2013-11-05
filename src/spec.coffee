@@ -1,257 +1,302 @@
 (($) ->
-  $ ->
-    ui = {
-      typeIn: (elem, txt) ->
-        $elem = $(elem)
-        len = txt.length
-        $elem.focus()
-        for i in [0...txt.length]
-          code = txt.charCodeAt i
-          $elem.trigger(jQuery.Event("keypress", { charCode: code, which: code }))
-        $elem.blur()
-        return
-      click: (elem, times = 1) ->
-        $elem = $(elem)
-        for i in [0...times]
-          $elem.trigger("mousedown")
-          $elem.trigger("mouseup")
-          $elem.trigger("click")
-        return
+  ui = {
+    typeIn: (elem, txt) ->
+      $elem = $(elem)
+      len = txt.length
+      $elem.focus()
+      for i in [0...txt.length]
+        code = txt.charCodeAt i
+        $elem.trigger(jQuery.Event("keydown", { charCode: code, keyCode: code, which: code }))
+        $elem.trigger(jQuery.Event("keyup", { charCode: code, keyCode: code, which: code }))
+        $elem.trigger(jQuery.Event("keypress", { charCode: code, keyCode: code, which: code }))
+      $elem.blur()
+      $elem.val(txt).change() if $elem.val() != txt
+      return
+
+    click: (elem, times = 1) ->
+      $elem = $(elem)
+      for i in [0...times]
+        $elem.trigger("mousedown")
+        $elem.trigger("mouseup")
+        $elem.trigger("click")
+      return
+  
+    mousewheelup: (elem, times = 1) ->
+      $elem = $(elem)
+      $elem.focus()
+      for i in [0...times]
+        $elem.trigger(jQuery.Event("mousewheel", { originalEvent: { wheelDelta: 3 } }))
+      $elem.blur()
+      return
+  
+    mousewheeldown: (elem, times = 1) ->
+      $elem = $(elem)
+      $elem.focus()
+      for i in [0...times]
+        $elem.trigger(jQuery.Event("mousewheel", { originalEvent: { wheelDelta: -3 } }))
+      $elem.blur()
+      return
+  
+  }
+  
+  $numberField = null
+  $upBtn = null
+  $downBtn = null
+  $fixture = $("#qunit-fixture")
+
+  QUnit.testStart (details) ->
+    $fixture.append('<input id="myFixture" name="number" type="number" />')
+    $fixture.children().inputNumber()
+    $numberField = $('#myFixture')
+    $upBtn = $('#myFixture + div.number-spin-btn-container > div.number-spin-btn-up')
+    $downBtn = $('#myFixture + div.number-spin-btn-container > div.number-spin-btn-down')
+    return
     
-      mousewheelup: (elem, times = 1) ->
-        $elem = $(elem)
-        $elem.focus()
-        for i in [0...times]
-          $elem.trigger(jQuery.Event("mousewheel", { originalEvent: { wheelDelta: 3 } }))
-        $elem.blur()
-        return
+  test "adds the necessary elements around the field", 6, ->
+    ok $numberField.parent().is('span'), "Element is in a span."
+    ok $numberField.next().is('div'), "Element is followed by a button container div."
+    ok $numberField.next().is('div.number-spin-btn-container'), "Button container div has class 'number-spin-btn-container'."
+    equal $numberField.next().children().length, 2, "Button container div has two children."
+    ok $numberField.next().children().first().is('div.number-spin-btn-up'), "Button container div's first child has class 'number-spin-btn-up'."
+    ok $numberField.next().children().eq(1).is('div.number-spin-btn-down'), "Button container div's second child has class 'number-spin-btn-down'."
+    return
+  
+  test "allows values to be typed in", 1, ->
+    ui.typeIn $numberField, "12345"
+    equal $numberField.val(), "12345", "Field value changes."
+    return
+
+  test "doesn't allow non-numeric values", 4, ->
+    changeEvents = 0
+    $numberField.val "0"
+    $numberField.change (evt)->
+      changeEvents++
+    ui.typeIn $numberField, "AAAAA"
+    equal changeEvents, 2, "Change event has fired twice."
+    equal $numberField.val(), "0", "Field value changes back to zero after typing letters in."
+    $numberField.val("BBBBBB").change()
+    equal changeEvents, 4, "Change event has fired four times."
+    equal $numberField.val(), "0", "Field value changes back to zero after trying to set the property to letters."
+    return
+  
+  test "doesn't allow values lower than min", 1, ->
+    $numberField.attr "min", "10"
+    $numberField.val("5").change()
+    equal $numberField.val(), "10", "Field value changes to min."
+    return
+  
+  test "allows changing min", 4, ->
+    $numberField.attr "min", "10"
+    $numberField.val("15").change()
+    $numberField.attr "min", "20"
+    equal $numberField.val(), "20", "Field value changes to min when min is changed to higher than value."
+    $numberField.val("15").change()
+    equal $numberField.val(), "20", "Field value changes back to min after being set to lower than min."
+    $numberField.attr "min", "10"
+    equal $numberField.val(), "20", "Field value doesn't change when min decreases."
+    $numberField.val("15").change()
+    equal $numberField.val(), "15", "Field value doesn't change to min when set to higher than min."
+    return
+  
+  test "allows deleting min", 3, ->
+    $numberField.attr "min", "10"
+    $numberField.val("1").change()
+    equal $numberField.val(), "10", "Field value changes to min after being set below min."
+    $numberField.removeAttr "min"
+    $numberField.val("1").change()
+    equal $numberField.val(), "1", "Field value can be set after min is deleted."
+    $numberField.attr "min", "10"
+    equal $numberField.val(), "10", "Field value changes to min after min is restored."
+    return
+  
+  test "doesn't allow values higher than max", 1, ->
+    $numberField.attr("max", "100")
+    $numberField.val("110").change()
+    equal $numberField.val(), "100", "Field value changes to max."
+    return
+  
+  test "allows changing max", 4, ->
+    $numberField.attr "max", "150"
+    $numberField.val("120").change()
+    $numberField.attr "max", "100"
+    equal $numberField.val(), "100", "Field value changes to max when max is changed to lower than value."
+    $numberField.val("120").change()
+    equal $numberField.val(), "100", "Field value changes back to max after being set to higher than max."
+    $numberField.attr "max", "150"
+    equal $numberField.val(), "100", "Field value doesn't change when max increases."
+    $numberField.val("120").change()
+    equal $numberField.val(), "120", "Field value doesn't change to max when set to lower than max."
+    return
+  
+  test "allows deleting max", 3, ->
+    $numberField.attr "max", "100"
+    $numberField.val("100000").change()
+    equal $numberField.val(), "100", "Field value changes to max after being set above max."
+    $numberField.removeAttr "max"
+    $numberField.val("100000").change()
+    equal $numberField.val(), "100000", "Field value can be set after max is deleted."
+    $numberField.attr "max", "100"
+    equal $numberField.val(), "100", "Field value changes to max after max is restored."
+    return
     
-      mousewheeldown: (elem, times = 1) ->
-        $elem = $(elem)
-        $elem.focus()
-        for i in [0...times]
-          $elem.trigger(jQuery.Event("mousewheel", { originalEvent: { wheelDelta: -3 } }))
-        $elem.blur()
-        return
+  test "applies opacity style properties gained from a class attribute to the button container", 3, ->
+    $numberField.addClass "opacityZero"
+    equal $upBtn.parent().css("opacity"), 0, "Button container is now transparent."
+    $numberField.removeClass("opacityZero").addClass "opacityHalf"
+    equal $upBtn.parent().css("opacity"), 0.5, "Button container is now translucent."
+    $numberField.removeClass("opacityHalf").addClass "opacityOne"
+    equal $upBtn.parent().css("opacity"), 1, "Button container is now opaque."
+    return
+  
+  test "applies opacity style properties gained from a style attribute to the button container", 3, ->
+    $numberField.css "opacity", "0"
+    equal $upBtn.parent().css("opacity"), "0", "Button container is now transparent."
+    $numberField.css "opacity", "0.5"
+    equal $upBtn.parent().css("opacity"), "0.5", "Button container is now translucent."
+    $numberField.css "opacity", "1"
+    equal $upBtn.parent().css("opacity"), "1", "Button container is now opaque."
+    return
     
+  test "applies visibility style properties gained from a class attribute to the button container", 2, ->
+    $numberField.addClass "hiddenClass"
+    equal $upBtn.parent().css("visibility"), "hidden", "Button container is now hidden."
+    $numberField.removeClass "hiddenClass"
+    equal $upBtn.parent().css("visibility"), "visible", "Button container is now visible."
+    return
+    
+  test "applies visibility style properties gained from a style attribute to the button container", 2, ->
+    $numberField.css "visibility", "hidden"
+    equal $upBtn.parent().css("visibility"), "hidden", "Button container is now hidden."
+    $numberField.css "visibility", "visible"
+    equal $upBtn.parent().css("visibility"), "visible", "Button container is now visible."
+    return
+    
+  test "applies display style properties gained from a class attribute to the button container", 2, ->
+    $numberField.addClass "noneClass"
+    equal $upBtn.parent().css("display"), "none", "Button container is now hidden."
+    $numberField.removeClass "noneClass"
+    equal $upBtn.parent().css("display"), "inline-block", "Button container is now visible."
+    return
+    
+  test "applies display style properties gained from a style attribute to the button container", 2, ->
+    $numberField.css "display", "none"
+    equal $upBtn.parent().css("display"), "none", "Button container is now hidden."
+    $numberField.css "display", "inline"
+    equal $upBtn.parent().css("display"), "inline-block", "Button container is now visible."
+    return
+  
+  test "can be disabled", 4, ->
+    $numberField.val "1"
+    $numberField.attr "disabled", "disabled"
+    ui.mousewheelup($numberField)
+    equal $numberField.val(), "1", "Value does not change with mousewheel up while disabled."
+    ui.mousewheeldown($numberField)
+    equal $numberField.val(), "1", "Value does not change with mousewheel down while disabled."
+    ui.click($upBtn)
+    equal $numberField.val(), "1", "Value does not change from clicking the up button while disabled."
+    ui.click($downBtn)
+    equal $numberField.val(), "1", "Value does not change from clicking the down button while disabled."
+    return
+  
+  test "constrains values with the step attribute", 3, ->
+    $numberField.attr "step", "5"
+    ui.typeIn $numberField, "40"
+    equal $numberField.val(), "40", "Does not change value when in step."
+    ui.typeIn $numberField, "42"
+    equal $numberField.val(), "40", "Rounds down to the nearest value in step."
+    ui.typeIn $numberField, "43"
+    equal $numberField.val(), "45", "Rounds up to the nearest value in step."
+    return
+  
+  test "can use fractional steps", ->
+    $numberField.attr "step", "0.05"
+    
+    for rounded, vals of {
+      "-10":   ["-10", "-9.99", "-9.98", "-9.976"]
+      "-9.95": ["-9.975", "-9.97", "-9.96", "-9.95", "-9.94", "-9.93", "-9.926"]
+      "-0.05": ["-0.075", "-0.06", "-0.05", "-0.04", "-0.03", "-0.026"]
+      "0":     ["-0.025", "-0.02", "-0.01", "0", "0.01", "0.02", "0.024"]
+      "0.05":  ["0.025", "0.03", "0.04", "0.05", "0.06", "0.07", "0.074"]
+      "9.95":  ["9.925", "9.93", "9.94", "9.95", "9.96", "9.97", "9.974"]
+      "10":    ["9.975", "9.98", "9.99", "10"]
     }
+      for i in vals
+        ui.typeIn $numberField, i
+        equal $numberField.val(), rounded, "#{ i } gets rounded to #{ rounded }."
+    return
+  
+  test "can use fractional steps with a min attribute", ->
+    $numberField.attr "step", "0.05"
+    $numberField.attr "min", "0.02"
     
-    vals = [
-      "0", "0.001", "0.002", "0.003", "0.004", "0.005", "0.006", "0.007", "0.008", "0.009",
-      "0.01", "0.011", "0.012", "0.013", "0.014", "0.015", "0.016", "0.017", "0.018", "0.019",
-      "0.02", "0.021", "0.022", "0.023", "0.024", "0.025", "0.026", "0.027", "0.028", "0.029",
-      "0.03", "0.031", "0.032", "0.033", "0.034", "0.035", "0.036", "0.037", "0.038", "0.039",
-      "0.04", "0.041", "0.042", "0.043", "0.044", "0.045", "0.046", "0.047", "0.048", "0.049",
-      "0.05", "0.051", "0.052", "0.053", "0.054", "0.055", "0.056", "0.057", "0.058", "0.059",
-      "0.06", "0.061", "0.062", "0.063", "0.064", "0.065", "0.066", "0.067", "0.068", "0.069",
-      "0.07", "0.071", "0.072", "0.073", "0.074", "0.075", "0.076", "0.077", "0.078", "0.079",
-      "0.08", "0.081", "0.082", "0.083", "0.084", "0.085", "0.086", "0.087", "0.088", "0.089",
-      "0.09", "0.091", "0.092", "0.093", "0.094", "0.095", "0.096", "0.097", "0.098", "0.099",
-      "0.1", "0.101", "0.102", "0.103", "0.104", "0.105", "0.106", "0.107", "0.108", "0.109",
-      "0.11", "0.111", "0.112", "0.113", "0.114", "0.115", "0.116", "0.117", "0.118", "0.119",
-      "0.12", "0.121", "0.122", "0.123", "0.124", "0.125", "0.126", "0.127", "0.128", "0.129",
-      "0.13", "0.131", "0.132", "0.133", "0.134", "0.135", "0.136", "0.137", "0.138", "0.139",
-      "0.14", "0.141", "0.142", "0.143", "0.144", "0.145", "0.146", "0.147", "0.148", "0.149",
-      "0.15", "0.151", "0.152", "0.153", "0.154", "0.155", "0.156", "0.157", "0.158", "0.159",
-      "0.16", "0.161", "0.162", "0.163", "0.164", "0.165", "0.166", "0.167", "0.168", "0.169",
-      "0.17", "0.171", "0.172", "0.173", "0.174", "0.175", "0.176", "0.177", "0.178", "0.179",
-      "0.18", "0.181", "0.182", "0.183", "0.184", "0.185", "0.186", "0.187", "0.188", "0.189",
-      "0.19", "0.191", "0.192", "0.193", "0.194", "0.195", "0.196", "0.197", "0.198", "0.199",
-      "0.2", "0.201", "0.202", "0.203", "0.204", "0.205", "0.206", "0.207", "0.208", "0.209",
-      "0.21", "0.211", "0.212", "0.213", "0.214", "0.215", "0.216", "0.217", "0.218", "0.219",
-      "0.22", "0.221", "0.222", "0.223", "0.224", "0.225", "0.226", "0.227", "0.228", "0.229",
-      "0.23", "0.231", "0.232", "0.233", "0.234", "0.235", "0.236", "0.237", "0.238", "0.239",
-      "0.24", "0.241", "0.242", "0.243", "0.244", "0.245", "0.246", "0.247", "0.248", "0.249",
-      "0.25", "0.251", "0.252", "0.253", "0.254", "0.255", "0.256", "0.257", "0.258", "0.259",
-      "0.26", "0.261", "0.262", "0.263", "0.264", "0.265", "0.266", "0.267", "0.268", "0.269",
-      "0.27", "0.271", "0.272", "0.273", "0.274", "0.275", "0.276", "0.277", "0.278", "0.279",
-      "0.28", "0.281", "0.282", "0.283", "0.284", "0.285", "0.286", "0.287", "0.288", "0.289",
-      "0.29", "0.291", "0.292", "0.293", "0.294", "0.295", "0.296", "0.297", "0.298", "0.299",
-      "0.3", "0.301", "0.302", "0.303", "0.304", "0.305", "0.306", "0.307", "0.308", "0.309",
-      "0.31", "0.311", "0.312", "0.313", "0.314", "0.315", "0.316", "0.317", "0.318", "0.319",
-      "0.32", "0.321", "0.322", "0.323", "0.324", "0.325", "0.326", "0.327", "0.328", "0.329",
-      "0.33", "0.331", "0.332", "0.333", "0.334", "0.335", "0.336", "0.337", "0.338", "0.339",
-      "0.34", "0.341", "0.342", "0.343", "0.344", "0.345", "0.346", "0.347", "0.348", "0.349",
-      "0.35", "0.351", "0.352", "0.353", "0.354", "0.355", "0.356", "0.357", "0.358", "0.359",
-      "0.36", "0.361", "0.362", "0.363", "0.364", "0.365", "0.366", "0.367", "0.368", "0.369",
-      "0.37", "0.371", "0.372", "0.373", "0.374", "0.375", "0.376", "0.377", "0.378", "0.379",
-      "0.38", "0.381", "0.382", "0.383", "0.384", "0.385", "0.386", "0.387", "0.388", "0.389",
-      "0.39", "0.391", "0.392", "0.393", "0.394", "0.395", "0.396", "0.397", "0.398", "0.399",
-      "0.4", "0.401", "0.402", "0.403", "0.404", "0.405", "0.406", "0.407", "0.408", "0.409",
-      "0.41", "0.411", "0.412", "0.413", "0.414", "0.415", "0.416", "0.417", "0.418", "0.419",
-      "0.42", "0.421", "0.422", "0.423", "0.424", "0.425", "0.426", "0.427", "0.428", "0.429",
-      "0.43", "0.431", "0.432", "0.433", "0.434", "0.435", "0.436", "0.437", "0.438", "0.439",
-      "0.44", "0.441", "0.442", "0.443", "0.444", "0.445", "0.446", "0.447", "0.448", "0.449",
-      "0.45", "0.451", "0.452", "0.453", "0.454", "0.455", "0.456", "0.457", "0.458", "0.459",
-      "0.46", "0.461", "0.462", "0.463", "0.464", "0.465", "0.466", "0.467", "0.468", "0.469",
-      "0.47", "0.471", "0.472", "0.473", "0.474", "0.475", "0.476", "0.477", "0.478", "0.479",
-      "0.48", "0.481", "0.482", "0.483", "0.484", "0.485", "0.486", "0.487", "0.488", "0.489",
-      "0.49", "0.491", "0.492", "0.493", "0.494", "0.495", "0.496", "0.497", "0.498", "0.499",
-      "0.5", "0.501", "0.502", "0.503", "0.504", "0.505", "0.506", "0.507", "0.508", "0.509",
-      "0.51", "0.511", "0.512", "0.513", "0.514", "0.515", "0.516", "0.517", "0.518", "0.519",
-      "0.52", "0.521", "0.522", "0.523", "0.524", "0.525", "0.526", "0.527", "0.528", "0.529",
-      "0.53", "0.531", "0.532", "0.533", "0.534", "0.535", "0.536", "0.537", "0.538", "0.539",
-      "0.54", "0.541", "0.542", "0.543", "0.544", "0.545", "0.546", "0.547", "0.548", "0.549",
-      "0.55", "0.551", "0.552", "0.553", "0.554", "0.555", "0.556", "0.557", "0.558", "0.559",
-      "0.56", "0.561", "0.562", "0.563", "0.564", "0.565", "0.566", "0.567", "0.568", "0.569",
-      "0.57", "0.571", "0.572", "0.573", "0.574", "0.575", "0.576", "0.577", "0.578", "0.579",
-      "0.58", "0.581", "0.582", "0.583", "0.584", "0.585", "0.586", "0.587", "0.588", "0.589",
-      "0.59", "0.591", "0.592", "0.593", "0.594", "0.595", "0.596", "0.597", "0.598", "0.599",
-      "0.6", "0.601", "0.602", "0.603", "0.604", "0.605", "0.606", "0.607", "0.608", "0.609",
-      "0.61", "0.611", "0.612", "0.613", "0.614", "0.615", "0.616", "0.617", "0.618", "0.619",
-      "0.62", "0.621", "0.622", "0.623", "0.624", "0.625", "0.626", "0.627", "0.628", "0.629",
-      "0.63", "0.631", "0.632", "0.633", "0.634", "0.635", "0.636", "0.637", "0.638", "0.639",
-      "0.64", "0.641", "0.642", "0.643", "0.644", "0.645", "0.646", "0.647", "0.648", "0.649",
-      "0.65", "0.651", "0.652", "0.653", "0.654", "0.655", "0.656", "0.657", "0.658", "0.659",
-      "0.66", "0.661", "0.662", "0.663", "0.664", "0.665", "0.666", "0.667", "0.668", "0.669",
-      "0.67", "0.671", "0.672", "0.673", "0.674", "0.675", "0.676", "0.677", "0.678", "0.679",
-      "0.68", "0.681", "0.682", "0.683", "0.684", "0.685", "0.686", "0.687", "0.688", "0.689",
-      "0.69", "0.691", "0.692", "0.693", "0.694", "0.695", "0.696", "0.697", "0.698", "0.699",
-      "0.7", "0.701", "0.702", "0.703", "0.704", "0.705", "0.706", "0.707", "0.708", "0.709",
-      "0.71", "0.711", "0.712", "0.713", "0.714", "0.715", "0.716", "0.717", "0.718", "0.719",
-      "0.72", "0.721", "0.722", "0.723", "0.724", "0.725", "0.726", "0.727", "0.728", "0.729",
-      "0.73", "0.731", "0.732", "0.733", "0.734", "0.735", "0.736", "0.737", "0.738", "0.739",
-      "0.74", "0.741", "0.742", "0.743", "0.744", "0.745", "0.746", "0.747", "0.748", "0.749",
-      "0.75", "0.751", "0.752", "0.753", "0.754", "0.755", "0.756", "0.757", "0.758", "0.759",
-      "0.76", "0.761", "0.762", "0.763", "0.764", "0.765", "0.766", "0.767", "0.768", "0.769",
-      "0.77", "0.771", "0.772", "0.773", "0.774", "0.775", "0.776", "0.777", "0.778", "0.779",
-      "0.78", "0.781", "0.782", "0.783", "0.784", "0.785", "0.786", "0.787", "0.788", "0.789",
-      "0.79", "0.791", "0.792", "0.793", "0.794", "0.795", "0.796", "0.797", "0.798", "0.799",
-      "0.8", "0.801", "0.802", "0.803", "0.804", "0.805", "0.806", "0.807", "0.808", "0.809",
-      "0.81", "0.811", "0.812", "0.813", "0.814", "0.815", "0.816", "0.817", "0.818", "0.819",
-      "0.82", "0.821", "0.822", "0.823", "0.824", "0.825", "0.826", "0.827", "0.828", "0.829",
-      "0.83", "0.831", "0.832", "0.833", "0.834", "0.835", "0.836", "0.837", "0.838", "0.839",
-      "0.84", "0.841", "0.842", "0.843", "0.844", "0.845", "0.846", "0.847", "0.848", "0.849",
-      "0.85", "0.851", "0.852", "0.853", "0.854", "0.855", "0.856", "0.857", "0.858", "0.859",
-      "0.86", "0.861", "0.862", "0.863", "0.864", "0.865", "0.866", "0.867", "0.868", "0.869",
-      "0.87", "0.871", "0.872", "0.873", "0.874", "0.875", "0.876", "0.877", "0.878", "0.879",
-      "0.88", "0.881", "0.882", "0.883", "0.884", "0.885", "0.886", "0.887", "0.888", "0.889",
-      "0.89", "0.891", "0.892", "0.893", "0.894", "0.895", "0.896", "0.897", "0.898", "0.899",
-      "0.9", "0.901", "0.902", "0.903", "0.904", "0.905", "0.906", "0.907", "0.908", "0.909",
-      "0.91", "0.911", "0.912", "0.913", "0.914", "0.915", "0.916", "0.917", "0.918", "0.919",
-      "0.92", "0.921", "0.922", "0.923", "0.924", "0.925", "0.926", "0.927", "0.928", "0.929",
-      "0.93", "0.931", "0.932", "0.933", "0.934", "0.935", "0.936", "0.937", "0.938", "0.939",
-      "0.94", "0.941", "0.942", "0.943", "0.944", "0.945", "0.946", "0.947", "0.948", "0.949",
-      "0.95", "0.951", "0.952", "0.953", "0.954", "0.955", "0.956", "0.957", "0.958", "0.959",
-      "0.96", "0.961", "0.962", "0.963", "0.964", "0.965", "0.966", "0.967", "0.968", "0.969",
-      "0.97", "0.971", "0.972", "0.973", "0.974", "0.975", "0.976", "0.977", "0.978", "0.979",
-      "0.98", "0.981", "0.982", "0.983", "0.984", "0.985", "0.986", "0.987", "0.988", "0.989",
-      "0.99", "0.991", "0.992", "0.993", "0.994", "0.995", "0.996", "0.997", "0.998", "0.999", "1"]
-    
-    $numberField = $('input[name="number"]')
-    $upBtn = $('input[name="number"] + div.number-spin-btn-container > div.number-spin-btn-up')
-    $downBtn = $('input[name="number"] + div.number-spin-btn-container > div.number-spin-btn-down')
-    
-    test "adds the increment and decrement buttons after the field", 2, ->
-      equal $upBtn.length, 1, "Increment button is added."
-      equal $downBtn.length, 1, "Decrement button is added."
-      return
-    
-    test "doesn't allow non-numeric values", 2, ->
-      $numberField.val "0"
-      ui.typeIn $numberField, "AAAAA"
-      equal $numberField.val(), "0", "Field value changes back to zero."
-      $numberField.val "BBBBBB"
-      equal $numberField.val(), "0", "Field value changes back to zero again."
-      return
-    
-    test "doesn't allow values lower than min", 1, ->
-      $numberField.attr "min", "10"
-      $numberField.val "5"
-      equal $numberField.val(), "10", "Field value changes to min."
-      return
-    
-    test "allows changing min", 4, ->
-      $numberField.attr "min", "10"
-      $numberField.val "15"
-      $numberField.attr "min", "20"
-      equal $numberField.val(), "20", "Field value changes to min."
-      $numberField.val "15"
-      equal $numberField.val(), "20", "Field value changes back to min."
-      $numberField.attr "min", "10"
-      equal $numberField.val(), "20", "Field value doesn't change when min does."
-      $numberField.val "15"
-      equal $numberField.val(), "15", "Field value doesn't change to min."
-      return
-    
-    test "allows deleting min", 2, ->
-      $numberField.removeAttr "min"
-      $numberField.val "1"
-      equal $numberField.val(), "1", "Field value can be set."
-      $numberField.attr "min", "10"
-      equal $numberField.val(), "10", "Field value changes to min."
-      return
-    
-    test "doesn't allow values higher than max", 1, ->
-      $numberField.attr("max", "100")
-      $numberField.val("110")
-      equal $numberField.val(), "100", "Field value changes to max."
-      return
-    
-    test "allows changing max", ->
-      $numberField.attr("max", "150")
-      $numberField.val("120")
-      $numberField.attr("max", "100")
-      equal $numberField.val(), "100", ""
-      $numberField.val("120")
-      equal $numberField.val(), "100", ""
-      $numberField.attr("max", "150")
-      equal $numberField.val(), "100", ""
-      $numberField.val("120")
-      equal $numberField.val(), "120", ""
-      return
-    
-    test "allows deleting max", ->
-      $numberField.removeAttr("max")
-      $numberField.val("100000")
-      equal $numberField.val(), "100000", ""
-      $numberField.attr("max", "100")
-      equal $numberField.val(), "100", ""
-      return
-    
-    test "constrains values with the step attribute", ->
-      $numberField.attr("step", "5")
-      ui.typeIn($numberField, "40")
-      equal $numberField.val(), "40", ""
-      ui.typeIn($numberField, "42")
-      equal $numberField.val(), "40", ""
-      ui.typeIn($numberField, "43")
-      equal $numberField.val(), "45", ""
-      return
-    
-    test "increments the value on mousewheel up", 1001, ->
-      $numberField.val("0")
-      $numberField.attr("step", "0.001")
-      for i in [0..1000]
-        ui.mousewheelup($numberField)
-        equal $numberField.val(), vals[i], ""
-      return
-    
-    test "decrements the value on mousewheel down", 1001, ->
-      $numberField.val("0")
-      $numberField.attr("step", "0.001")
-      for i in [1000..0]
-        ui.mousewheeldown($numberField)
-        equal $numberField.val(), vals[i], ""
-      return
-    
-    module "upBtn"
-    
-    test "increments the value when clicked", 1001, ->
-      $numberField.val("0")
-      $numberField.attr("step", "0.001")
-      for i in [0..1000]
-        ui.click($upBtn)
-        equal $numberField.val(), vals[i], ""
-      return
-    
-    module "downBtn"
-    
-    test "decrements the value when clicked", 1001, ->
-      for i in [1000..0]
-        ui.click($downBtn)
-        equal $numberField.val(), vals[i], ""
-      return
+    for rounded, vals of {
+      "0.02":  ["-10", "-5.43", "0", "0.01", "0.02", "0.03", "0.04", "0.044"]
+      "0.07":  ["0.045", "0.05", "0.06", "0.07", "0.08", "0.09", "0.094"]
+      "0.12":  ["0.095", "0.1", "0.11", "0.12", "0.13", "0.14", "0.144"]
+      "9.97":  ["9.945", "9.95", "9.96", "9.97", "9.98", "9.99", "9.994"]
+      "10.02": ["9.995", "10", "10.01", "10.02"]
+    }
+      for i in vals
+        ui.typeIn $numberField, i
+        equal $numberField.val(), rounded, "#{ i } gets rounded to #{ rounded }."
+    return
+
+  test "increments the value on mousewheel up with an integer step", 10, ->
+    $numberField.attr "step", "2"
+    ui.typeIn $numberField, "-10"
+
+    for i in [-8..10] by 2
+      ui.mousewheelup($numberField)
+      equal $numberField.val(), i.toString(), "Increments value to #{ i }."
+    return
+  
+  test "increments the value on mousewheel up with a fractional step", 21, ->
+    $numberField.attr "step", "0.001"
+    ui.typeIn $numberField, "-0.01"
+    equal $numberField.val(), "-0.01", "Value starts at -0.01."
+
+    for i in ["-0.009", "-0.008", "-0.007", "-0.006", "-0.005", "-0.004", "-0.003", "-0.002", "-0.001", "0", "0.001", "0.002", "0.003", "0.004", "0.005", "0.006", "0.007", "0.008", "0.009", "0.01"]
+      ui.mousewheelup($numberField)
+      equal $numberField.val(), i, "Increments value to #{ i }."
+    return
+  
+  test "decrements the value on mousewheel down with an integer step", 10, ->
+    $numberField.attr "step", "2"
+    ui.typeIn $numberField, "10"
+    for i in [8..-10] by -2
+      ui.mousewheeldown($numberField)
+      equal $numberField.val(), i.toString(), "Decrements value to #{ i }."
+    return
+  
+  test "decrements the value on mousewheel down with a fractional step", 21, ->
+    $numberField.attr "step", "0.001"
+    ui.typeIn $numberField, "0.01"
+    equal $numberField.val(), "0.01", "Value starts at 0.01."
+    for i in ["0.009", "0.008", "0.007", "0.006", "0.005", "0.004", "0.003", "0.002", "0.001", "0", "-0.001", "-0.002", "-0.003", "-0.004", "-0.005", "-0.006", "-0.007", "-0.008", "-0.009", "-0.01"]
+      ui.mousewheeldown($numberField)
+      equal $numberField.val(), i, "Decrements value to #{ i }."
+    return
+  
+  module "upBtn"
+  
+  test "increments the value when clicked", 21, ->
+    $numberField.attr "step", "0.001"
+    ui.typeIn $numberField, "-0.01"
+    equal $numberField.val(), "-0.01", "Value starts at -0.01."
+    for i in ["-0.009", "-0.008", "-0.007", "-0.006", "-0.005", "-0.004", "-0.003", "-0.002", "-0.001", "0", "0.001", "0.002", "0.003", "0.004", "0.005", "0.006", "0.007", "0.008", "0.009", "0.01"]
+      ui.click($upBtn)
+      equal $numberField.val(), i, "Increments value to #{ i }."
+    return
+  
+  module "downBtn"
+  
+  test "decrements the value when clicked", 21, ->
+    $numberField.attr "step", "0.001"
+    ui.typeIn $numberField, "0.01"
+    equal $numberField.val(), "0.01", "Value starts at 0.01."
+    for i in ["0.009", "0.008", "0.007", "0.006", "0.005", "0.004", "0.003", "0.002", "0.001", "0", "-0.001", "-0.002", "-0.003", "-0.004", "-0.005", "-0.006", "-0.007", "-0.008", "-0.009", "-0.01"]
+      ui.click($downBtn)
+      equal $numberField.val(), i, "Decrements value to #{ i }."
     return
   return
 )(jQuery)

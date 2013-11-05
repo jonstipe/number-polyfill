@@ -6,369 +6,341 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
   i.setAttribute "type", "number"
   if i.type == "text"
     $.fn.inputNumber = ->
-      console.log "found #{ $(this).filter('input[type="number"]').length } elements."
       $(this).filter('input[type="number"]').each ->
-        console.log "Creating new polyfill."
         numberPolyfill.polyfills.push(new numberPolyfill(this))
         return
       return $(this)
-      
-    decimalNum = (num, precision)->
-      unless precision?
-        if typeof num == 'object' && num.constructor == decimalNum
-          @num = num.num
-          @precision = num.precision
-        else if typeof num == 'number' || (typeof num == 'object' && num.constructor == Number)
-          rNum = num
-          r = 0
-          while rNum > Math.floor(rNum)
-            rNum = num * Math.pow(10, r++)
-          @num = rNum
-          @precision = r
-      else 
-        @num = num
-        @precision = precision
-      return
-
-    decimalNum::raise = (digits)->
-      @num = @num * Math.pow(10, digits)
-      @precision += digits
-      return
-
-    decimalNum::add = (other_num)->
-      other_num = new decimalNum(other_num)
-      if @precision > other_num.precision
-        other_num.raise(@precision - other_num.precision)
-      else if @precision < other_num.precision
-        @raise(other_num.precision - @precision)
-      sum = new decimalNum(@num + other_num.num, @precision)
-      sum.reduce()
-      return sum
-
-    decimalNum::subtract = (other_num)->
-      other_num = new decimalNum(other_num)
-      if @precision > other_num.precision
-        other_num.raise(@precision - other_num.precision)
-      else if @precision < other_num.precision
-        @raise(other_num.precision - @precision)
-      diff = new decimalNum(@num - other_num.num, @precision)
-      diff.reduce()
-      return diff
-  
-    decimalNum::reduce = ()->
-      r = 0
-      while @num % Math.pow(10, r) == 0 && r < @precision
-        r++
-      if r > 0
-        @num = @num / Math.pow(10, r)
-        @precision -= r
-      return
-      
-    decimalNum::toFloat = ()->
-      return (@num / Math.pow(10, @precision))
-      
-    decimalNum::toString = ()->
-      return @toFloat().toString()
-
-    decimalNum::mod = (num)->
-      return @toFloat() % num
 
     numberPolyfill = (elem)->
       @elem = $(elem)
       halfHeight = (@elem.outerHeight() / 2) + 'px'
       @upBtn = $ '<div/>', { class: 'number-spin-btn number-spin-btn-up', style: "height: #{halfHeight}" }
       @downBtn = $ '<div/>', { class: 'number-spin-btn number-spin-btn-down', style: "height: #{halfHeight}" }
-      $btnContainer = $ '<div/>', { class: 'number-spin-btn-container' }
+      @btnContainer = $ '<div/>', { class: 'number-spin-btn-container' }
       $fieldContainer = $ '<span/>', { style: "white-space: nowrap" }
-      @upBtn.appendTo $btnContainer
-      @downBtn.appendTo $btnContainer
+      @upBtn.appendTo @btnContainer
+      @downBtn.appendTo @btnContainer
       @elem.wrap($fieldContainer)
-      $btnContainer.insertAfter @elem
-      console.log "Added buttons."
+      @btnContainer.insertAfter @elem
 
-      domMouseScrollHandler = (e) =>
-        e.preventDefault()
-        if e.originalEvent.detail < 0
-          @increment()
-        else
-          @decrement()
-        return
-        
-      mouseWheelHandler = (e) =>
-        e.preventDefault()
-        if e.originalEvent.wheelDelta > 0
-          @increment()
-        else
-          @decrement()
-        return
-
-      console.log "Adding element event handlers."
       @elem.on
         focus: (e) =>
-          @elem.on
-            DOMMouseScroll: domMouseScrollHandler
-            mousewheel: mouseWheelHandler
+          @elem.on {
+            DOMMouseScroll: numberPolyfill.domMouseScrollHandler
+            mousewheel: numberPolyfill.mouseWheelHandler
+          }, { p: @ }
           return
         blur: (e) =>
           @elem.off
-            DOMMouseScroll: domMouseScrollHandler
-            mousewheel: mouseWheelHandler
-          return
-        keypress: (e) =>
-          if e.keyCode == 38 # up arrow
-            @increment()
-          else if e.keyCode == 40 # down arrow
-            @decrement()
-          else if (e.keyCode not in [8, 9, 35, 36, 37, 39, 46]) && (e.which not in [45, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57])
-            e.preventDefault()
-          return
-        change: (e) =>
-          if e.originalEvent?
-            params = @getParams()
-
-            newVal = @clipValues params['val'], params['min'], params['max']
-            newVal = @matchStep newVal, params['min'], params['max'], params['step'], params['stepDecimal']
-
-            @elem.val newVal
-          return
-  
-      console.log "Adding button event handlers."
-      @upBtn.on "mousedown", (e) =>
-        @increment()
-
-        timeoutFunc = (incFunc) =>
-          @increment()
-          @timeoutID = window.setTimeout(timeoutFunc, 10)
+            DOMMouseScroll: numberPolyfill.domMouseScrollHandler
+            mousewheel: numberPolyfill.mouseWheelHandler
           return
 
-        releaseFunc = (e) =>
-          window.clearTimeout @timeoutID
-          $(document).off 'mouseup', releaseFunc
-          @upBtn.off 'mouseleave', releaseFunc
-          return
+      @elem.on {
+        keypress: numberPolyfill.elemKeypressHandler
+        change: numberPolyfill.elemChangeHandler
+      }, { p: @ }
 
-        $(document).on 'mouseup', releaseFunc
-        @upBtn.on 'mouseleave', releaseFunc
+      @upBtn.on "mousedown", { p: @, func: "increment" }, numberPolyfill.elemBtnMousedownHandler
+      @downBtn.on "mousedown", { p: @, func: "decrement" }, numberPolyfill.elemBtnMousedownHandler
 
-        @timeoutID = window.setTimeout(timeoutFunc, 700)
-        return
-      @downBtn.on "mousedown", (e) =>
-        @decrement()
-
-        timeoutFunc = (decFunc) =>
-          @decrement()
-          @timeoutID = window.setTimeout(timeoutFunc, 10)
-          return
-
-        releaseFunc = (e) =>
-          window.clearTimeout @timeoutID
-          $(document).off 'mouseup', releaseFunc
-          @downBtn.off 'mouseleave', releaseFunc
-          return
-
-        $(document).on 'mouseup', releaseFunc
-        @downBtn.on 'mouseleave', releaseFunc
-
-        @timeoutID = window.setTimeout(timeoutFunc, 700)
-        return
       @elem.css "textAlign", 'right'
-      $btnContainer.css("opacity", @elem.css("opacity")) if @elem.css("opacity") != "1"
-      $btnContainer.css("visibility", @elem.css("visibility")) if @elem.css("visibility") != "visible"
-      #$btnContainer.css("display", @elem.css("display")) if @elem.css("display") != ""
-      console.log "Adding mutation observers."
+      @attrMutationHandler("class")
+
       if (WebKitMutationObserver? || MutationObserver?)
-        attrMutationCallback = (mutations, observer) =>
+        if (WebKitMutationObserver? && not MutationObserver?)
+          MutationObserver = WebKitMutationObserver
+        attrObserver = new MutationObserver (mutations, observer) =>
           for mutation in mutations
             if mutation.type == "attributes"
-              if mutation.attributeName == "class"
-                $btnContainer.removeClass(mutation.oldValue).addClass(@elem.className)
-              else if mutation.attributeName == "style"
-                $btnContainer.css {
-                  "opacity": @elem.css("opacity")
-                  "visibility": @elem.css("visibility")
-                  "display": @elem.css("display")
-                }
+              @attrMutationHandler(mutation.attributeName, mutation.oldValue, @elem.attr(mutation.attributeName))
           return
-        attrObserver = if (WebKitMutationObserver?) then new WebKitMutationObserver(attrMutationCallback) else (if (MutationObserver?) then new MutationObserver(attrMutationCallback) else null)
         attrObserver.observe elem, {
           attributes: true
           attributeOldValue: true
-          attributeFilter: ["class", "style"]
+          attributeFilter: ["class", "style", "min", "max", "step"]
         }
       else if MutationEvent?
-        @elem.on "DOMAttrModified", (evt) ->
-          if evt.originalEvent.attrName == "class"
-            $(btnContainer).removeClass(evt.originalEvent.prevValue).addClass(evt.originalEvent.newValue)
-          else if evt.originalEvent.attrName == "style"
-            $(btnContainer).css {
-              "display": elem.style.display
-              "visibility": elem.style.visibility
-              "opacity": elem.style.opacity
-            }
+        @elem.on "DOMAttrModified", (evt) =>
+          @attrMutationHandler(evt.originalEvent.attrName, evt.originalEvent.prevValue, evt.originalEvent.newValue)
           return
-      console.log "Done with one."
       return
 
     numberPolyfill.polyfills = []
-  
+
+    numberPolyfill.isNumber = (input) ->
+      if (input? && typeof input.toString == "function")
+        return /^-?\d+(?:\.\d+)?$/.test(input.toString())
+      else
+        return false
+
+    numberPolyfill.isFloat = (input) ->
+      if (input? && typeof input.toString == "function")
+        return /^-?\d+\.\d+$/.test(input.toString())
+      else
+        return false
+
+    numberPolyfill.isInt = (input) ->
+      if (input? && typeof input.toString == "function")
+        return /^-?\d+$/.test(input.toString())
+      else
+        return false
+
+    numberPolyfill.isNegative = (input) ->
+      if (input? && typeof input.toString == "function")
+        return /^-\d+(?:\.\d+)?$/.test(input.toString())
+      else
+        return false
+
+    numberPolyfill.raiseNum = (num) ->
+      if typeof num == "number" || (typeof num == "object" && num instanceof Number)
+        if num % 1
+          return { num: num.toString(), precision: 0 }
+        else
+          return numberPolyfill.raiseNum(num.toString())
+      else if typeof num == "string" || (typeof num == "object" && num instanceof String)
+        if numberPolyfill.isFloat num
+          num = num.replace(/(\.\d)0+$/, "$1")
+          nump = numberPolyfill.getPrecision(num)
+          numi = (num[0...(-(nump + 1))] + num[(-nump)...])
+          numi = numi.replace(/^(-?)0+(\d+)/, "$1$2")
+          a = { num: numi, precision: nump }
+          return a
+        else if numberPolyfill.isInt num
+          return { num: num, precision: 0 }
+
+    numberPolyfill.raiseNumPrecision = (rNum, newPrecision) ->
+      if rNum.precision < newPrecision
+        for i in [rNum.precision...newPrecision]
+          rNum.num += "0"
+        rNum.precision = newPrecision
+      return
+
+    numberPolyfill.lowerNum = (num) ->
+      if num.precision > 0
+        while num.num.length < (num.precision + 1)
+          if numberPolyfill.isNegative num.num
+            num.num = num.num[0...1] + "0" + num.num[1...]
+          else
+            num.num = "0" + num.num
+        return (num.num[0...(-num.precision)] + "." + num.num[(-num.precision)...]).replace(/\.?0+$/, '').replace(/^(-?)(\.)/, "$10$2")
+      else
+        return num.num
+        
+    numberPolyfill.preciseAdd = (num1, num2) ->
+      if (typeof num1 == "number" || (typeof num1 == "object" && num1 instanceof Number)) && (typeof num2 == "number" || (typeof num2 == "object" && num2 instanceof Number))
+        if num1 % 1 == 0 && num2 % 1 == 0
+          return (num1 + num2).toString()
+        else
+          return numberPolyfill.preciseAdd(num1.toString(), num2.toString())
+      else if (typeof num1 == "string" || (typeof num1 == "object" && num1 instanceof String)) && (typeof num2 == "string" || (typeof num2 == "object" && num2 instanceof String))
+        if numberPolyfill.isNumber(num1)
+          if numberPolyfill.isNumber(num2)
+            if numberPolyfill.isInt(num1)
+              if numberPolyfill.isInt(num2)
+                return numberPolyfill.preciseAdd(parseInt(num1, 10), parseInt(num2, 10))
+              else if numberPolyfill.isFloat(num2)
+                num1 += ".0"
+            else if numberPolyfill.isFloat(num1)
+              if numberPolyfill.isInt(num2)
+                num2 += ".0"
+
+            num1i = numberPolyfill.raiseNum num1
+            num2i = numberPolyfill.raiseNum num2
+            if num1i.precision < num2i.precision
+              numberPolyfill.raiseNumPrecision num1i, num2i.precision
+            else if num1i.precision > num2i.precision
+              numberPolyfill.raiseNumPrecision num2i, num1i.precision
+            result = (parseInt(num1i.num, 10) + parseInt(num2i.num, 10)).toString()
+            if num1i.precision > 0
+              if numberPolyfill.isNegative(result)
+                result = "-0" + result[1...] while num1i.precision > (result.length - 1)
+              else
+                result = "0" + result while num1i.precision > result.length
+              result = numberPolyfill.lowerNum({ num: result, precision: num1i.precision })
+            result = result.replace(/^(-?)\./, '$10.')
+            result = result.replace(/0+$/, '') if numberPolyfill.isFloat(result)
+            return result
+          else
+            throw new SyntaxError("Argument \"#{ num2 }\" is not a number.")
+        else
+          throw new SyntaxError("Argument \"#{ num1 }\" is not a number.")
+      else
+        return numberPolyfill.preciseAdd(num1.toString(), num2.toString())
+
+    numberPolyfill.preciseSubtract = (num1, num2) ->
+      if (typeof num2 == "number" || (typeof num2 == "object" && num2 instanceof Number))
+        return numberPolyfill.preciseAdd(num1, -num2)
+      else if (typeof num2 == "string" || (typeof num2 == "object" && num2 instanceof String))
+        if numberPolyfill.isNegative(num2)
+          return numberPolyfill.preciseAdd(num1, num2[1..])
+        else
+          return numberPolyfill.preciseAdd(num1, "-" + num2)
+
+    numberPolyfill.getPrecision = (num) ->
+      if typeof num == "number"
+        k = 0
+        kNum = num
+        while kNum != Math.floor(kNum)
+          kNum = num * Math.pow(10, ++k)
+        return k
+      else if typeof num == "string"
+        if numberPolyfill.isNumber num
+          if numberPolyfill.isFloat num
+            return /^-?\d+(?:\.(\d+))?$/.exec(num)[1].length
+          else
+            return 0
+
     numberPolyfill::getParams = () ->
       step = @elem.attr 'step'
       min = @elem.attr 'min'
       max = @elem.attr 'max'
       val = @elem.val()
-      step = null unless /^-?\d+(?:\.\d+)?$/.test(step)
-      min = null unless /^-?\d+(?:\.\d+)?$/.test(min)
-      max = null unless /^-?\d+(?:\.\d+)?$/.test(max)
-      unless /^-?\d+(?:\.\d+)?$/.test(val)
+      step = null unless numberPolyfill.isNumber(step)
+      min = null unless numberPolyfill.isNumber(min)
+      max = null unless numberPolyfill.isNumber(max)
+      unless numberPolyfill.isNumber(val)
         val = min || 0
-      {
-        min: new decimalNum(min)
-        max: new decimalNum(max)
-        step: new decimalNum(step)
-        val: new decimalNum(val)
+      return {
+        min: if (min?) then min else null
+        max: if (max?) then max else null
+        step: if (step?) then step else "1"
+        val: if (val?) then val else null
       }
 
     numberPolyfill::clipValues = (value, min, max) ->
-      if max? && value.toFloat() > max.toFloat()
-        max
-      else if min? && value.toFloat() < min.toFloat()
-        min
+      if max? && parseFloat(value) > parseFloat(max)
+        return max
+      else if min? && parseFloat(value) < parseFloat(min)
+        return min
       else
-        value
+        return value
 
     numberPolyfill::stepNormalize = (value) ->
-      return value
-#      params = @getParams()
-#      value = params['value']
-#      step = params['step']
-#      min = params['min']
-#      max = params['max']
-#      unless step?
-#        return value
-#      else
-#        stepDecimalDigits = numberPolyfill.extractNumDecimalDigits step
-#        if stepDecimalDigits == 0
-#          raiseTo = Math.pow 10, stepDecimalDigits
-#          step = parseFloat(params['step']) * raiseTo
-#        else
-#          raiseTo = 1
-#          step = parseFloat(params['step'])
-#        cValue = value
-#        cValue = numberPolyfill.subtractAsStr(cValue, min) if min?
-#        cValue = (parseFloat(cValue) * raiseTo).toString() if raiseTo > 1
-#        mod = cValue % step
-        
-        
-        
-      
-#       if stepDecimalDigits == 0
-#        mod = (value - (min || 0)) % step
-#        if mod == 0
-#          value;
-#        else
-#          stepDown = value - mod
-#          stepUp = stepDown + step
-#          if (stepUp > max) || ((value - stepDown) < (stepUp - value))
-#            stepDown
-#          else
-#            stepUp
-#      else
-#        raiseTo = Math.pow 10, stepDecimalDigits
-#        raisedStep = step * raiseTo
-#        raisedMod = (value - (min || 0)) * raiseTo % raisedStep
-#        if raisedMod == 0
-#          value
-#        else
-#          raisedValue = value * raiseTo
-#          raisedStepDown = raisedValue - raisedMod
-#          raisedStepUp = raisedStepDown + raisedStep
-#          if ((raisedStepUp / raiseTo) > max) || ((raisedValue - raisedStepDown) < (raisedStepUp - raisedValue))
-#            raisedStepDown / raiseTo
-#          else
-#            raisedStepUp / raiseTo
+      params = @getParams()
+      step = params['step']
+      min = params['min']
+      if not step?
+        return value
+      else
+        step = numberPolyfill.raiseNum step
+        cValue = numberPolyfill.raiseNum value
+        if cValue.precision > step.precision
+          numberPolyfill.raiseNumPrecision step, cValue.precision
+        else if cValue.precision < step.precision
+          numberPolyfill.raiseNumPrecision cValue, step.precision
+        if min?
+          cValue = numberPolyfill.raiseNum(numberPolyfill.preciseSubtract(value, min))
+          numberPolyfill.raiseNumPrecision(cValue, step.precision)
+        if parseFloat(cValue.num) % parseFloat(step.num) == 0
+          return value
+        else
+          cValue = numberPolyfill.lowerNum { num: ((Math.round(parseFloat(cValue.num) / (sn = parseFloat(step.num))) * sn).toString()), precision: cValue.precision }
+          cValue = numberPolyfill.preciseAdd cValue, min if min?
+          return cValue
 
-#    numberPolyfill.addAsStr = (str1, str2) ->
-#      isFloat = /^-?\d+(?:\.\d+)?$/
-#      isInt = /^-?\d+$/
-#      isNegative = /^-.+$/
-#      if isFloat.test(str1) &&  isFloat.test(str2)
-#        if isInt.test(str1)
-#          if isInt.test(str2)
-#            return (parseInt(str1, 10) + parseInt(str2, 10)).toString()
-#          else
-#            return numberPolyfill.addAsStr(str1 + ".0", str2)
-#        else
-#          if isInt.test(str2)
-#            return numberPolyfill.addAsStr(str1, str2 + ".0")
-#          else
-#            precision1 = str1.length - str1.indexOf(".") - 1
-#            precision2 = str2.length - str2.indexOf(".") - 1
-#            add = true
-#            output = ""
-#            k = 0
-#            carry = 0
-#            digit = 0
-#            if precision1 < precision2
-#              for i in [0...(precision2-precision1)]
-#                str1 = str1 + "0"
-#            else if precision2 < precision1
-#              for i in [0...(precision1-precision2)]
-#                str2 = str2 + "0"
-#            if (isNegative.test(str1) && !isNegative.test(str2)) || (!isNegative.test(str1) && isNegative.test(str2))
-#              add = false
-#            while (k < str1.length && k < str2.length) || carry != 0
-#              digit1 = if k < str1.length then str1[(str1.length - 1) - k] else "0"
-#              digit2 = if k < str2.length then str2[(str2.length - 1) - k] else "0"
-#              digit1 = "0" if digit1 == "-"
-#              digit2 = "0" if digit2 == "-"
-#              if digit1 == "." && digit2 == "."
-#                output = "." + output
-#              else
-#                digit1 = parseInt(digit1, 10)
-#                digit2 = parseInt(digit2, 10)
-#                if add
-#                  digit = digit1 + digit2 + carry
-#                else
-#                  digit = digit1 - digit2 - carry
-#                carry = Math.floor(digit / 10)
-#                output = (digit % 10).toString() + output
-#              k++
-#            if isNegative.test(str1)
-#              if isNegative.test(str2) || (parseInt(str2, 10) < Math.abs(parseInt(str1, 10)))
-#                output = "-" + output
-#            else
-#              if isNegative.test(str2) && (Math.abs(parseInt(str2, 10)) > parseInt(str1, 10))
-#                output = "-" + output
-#            return output
+    numberPolyfill.domMouseScrollHandler = (evt) ->
+      p = evt.data.p
+      evt.preventDefault()
+      if evt.originalEvent.detail < 0
+        p.increment()
+      else
+        p.decrement()
+      return
 
-#    numberPolyfill.subtractAsStr = (str1, str2) ->
-#      isNegative = /^-.+$/
-#      if isNegative.test(str2)
-#        return numberPolyfill.addAsStr(str1, str2[1...])
-#      else
-#        return numberPolyfill.addAsStr(str1, "-" + str2)
-          
+    numberPolyfill.mouseWheelHandler = (evt) ->
+      p = evt.data.p
+      evt.preventDefault()
+      if evt.originalEvent.wheelDelta > 0
+        p.increment()
+      else
+        p.decrement()
+      return
+
+    numberPolyfill.elemKeypressHandler = (evt) ->
+      p = evt.data.p
+      if evt.keyCode == 38 # up arrow
+        p.increment()
+      else if evt.keyCode == 40 # down arrow
+        p.decrement()
+      else if (evt.keyCode not in [8, 9, 35, 36, 37, 39, 46]) && (evt.which not in [45, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57])
+        evt.preventDefault()
+      return
+
+    numberPolyfill.elemChangeHandler = (evt) ->
+      p = evt.data.p
+      if numberPolyfill.isNumber(p.elem.val())
+        params = p.getParams()
+
+        newVal = p.clipValues params['val'], params['min'], params['max']
+        newVal = p.stepNormalize newVal
+
+        if newVal.toString() != p.elem.val()
+          p.elem.val(newVal).change()
+      else
+        min = p.elem.attr('min')
+        p.elem.val(if (min? && numberPolyfill.isNumber(min)) then min else "0").change()
+      return
+
+    numberPolyfill.elemBtnMousedownHandler = (evt) ->
+      p = evt.data.p
+      func = evt.data.func
+      p[func]()
+
+      timeoutFunc = (incFunc) =>
+        p[func]()
+        p.timeoutID = window.setTimeout(timeoutFunc, 10)
+        return
+
+      releaseFunc = (e) =>
+        window.clearTimeout p.timeoutID
+        $(document).off 'mouseup', releaseFunc
+        p.upBtn.off 'mouseleave', releaseFunc
+        return
+
+      $(document).on 'mouseup', releaseFunc
+      p.upBtn.on 'mouseleave', releaseFunc
+
+      p.timeoutID = window.setTimeout(timeoutFunc, 700)
+      return
+
+    numberPolyfill::attrMutationHandler = (name, oldValue, newValue) ->
+      if name == "class" or name == "style"
+        h = {}
+        ei = null
+        for i in ["opacity", "visibility", "-moz-transition-property", "-moz-transition-duration", "-moz-transition-timing-function", "-moz-transition-delay", "-webkit-transition-property", "-webkit-transition-duration", "-webkit-transition-timing-function", "-webkit-transition-delay", "-o-transition-property", "-o-transition-duration", "-o-transition-timing-function", "-o-transition-delay", "transition-property", "transition-duration", "transition-timing-function", "transition-delay"]
+          if (ei = @elem.css(i)) != @btnContainer.css(i)
+            h[i] = ei
+        if (@elem.css("display") == "none")
+          h["display"] = "none"
+        else
+          h["display"] = "inline-block"
+        @btnContainer.css(h)
+      else if name in ["min", "max", "step"]
+        @elem.change()
+      return
+
     numberPolyfill::increment = () ->
       unless @elem.is(":disabled")
-        console.log "increment() called."
+
         params = @getParams()
-        newVal = params['val'].add params['step']
-  
-        newVal = params['max'] if params['max']? && newVal.toFloat() > params['max'].toFloat()
+        newVal = numberPolyfill.preciseAdd params['val'], params['step']
+
+        newVal = params['max'] if params['max']? && parseFloat(newVal) > parseFloat(params['max'])
         newVal = @stepNormalize newVal
-  
+
         @elem.val(newVal).change()
       return
 
     numberPolyfill::decrement = () ->
       unless @elem.is(":disabled")
-        console.log "decrement() called."
+
         params = @getParams()
-        newVal = params['val'].subtract params['step']
-  
-        newVal = params['min'] if params['min']? && newVal.toFloat() < params['min'].toFloat()
+        newVal = numberPolyfill.preciseSubtract params['val'], params['step']
+
+        newVal = params['min'] if params['min']? && parseFloat(newVal) < parseFloat(params['min'])
         newVal = @stepNormalize newVal
-  
+
         @elem.val(newVal).change()
       return
 
@@ -376,7 +348,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
     $.fn.inputNumber = ->
       $(this)
     return
-  
+
   $ ->
     $('input[type="number"]').inputNumber()
     return
