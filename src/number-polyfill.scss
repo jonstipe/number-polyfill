@@ -1,0 +1,127 @@
+/*! HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-polyfill*/
+
+@mixin box-sizing($data) {
+  -moz-box-sizing: $data;
+  -webkit-box-sizing: $data;
+  box-sizing: $data;
+}
+
+@mixin border-radius($data...) {
+  -moz-border-radius: $data;
+  -webkit-border-radius: $data;
+  border-radius: $data;
+}
+
+$btn-border-highlight: #ededed;
+$btn-border-shadow: #777777;
+$btn-bg: #CCCCCC;
+$btn-border-highlight-active: #5e5e5e;
+$btn-border-shadow-active: #d8d8d8;
+$btn-bg-active: #999999;
+
+div.number-spin-btn-container {
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
+  margin: 0;
+  padding: 0;
+}
+
+div.number-spin-btn {
+  @include box-sizing(border-box);
+  border: {
+    width: 2px;
+    color: $btn-border-highlight $btn-border-shadow $btn-border-shadow $btn-border-highlight;
+    style: solid;
+  }
+  background-color: $btn-bg;
+  width: 1.2em;
+  &:hover {
+    cursor: pointer;
+  }
+  &:active {
+    border: {
+      width: 2px;
+      color: $btn-border-highlight-active $btn-border-shadow-active $btn-border-shadow-active $btn-border-highlight-active;
+      style: solid;
+    }
+    background-color: $btn-bg-active;
+  }
+}
+
+div.number-spin-btn-up {
+  border-bottom-width: 1px;
+  @include border-radius(3px 3px 0px 0px);
+  &:before {
+    border: {
+      width: 0 0.3em 0.3em 0.3em;
+      color: transparent transparent black transparent;
+    }
+    top: 25%;
+  }
+  &:active {
+    border-bottom-width: 1px;
+  }
+  &:active:before {
+    border-bottom-color: white;
+    top: 26%;
+    left: 51%;
+  }
+}
+
+div.number-spin-btn-down {
+  border-top-width: 1px;
+  @include border-radius(0px 0px 3px 3px);
+  &:before {
+    border: {
+      width: 0.3em 0.3em 0 0.3em;
+      color: black transparent transparent transparent;
+    }
+    top: 75%;
+  }
+  &:active {
+    border-top-width: 1px;
+  }
+  &:active:before {
+    border-top-color: white;
+    top: 76%;
+    left: 51%;
+  }
+}
+
+div.number-spin-btn-up:before,
+div.number-spin-btn-down:before {
+  content: "";
+  width: 0;
+  height: 0;
+  border: {
+    style: solid;
+  }
+  position: absolute;
+  left: 50%;
+  margin: -0.15em 0 0 -0.3em;
+  padding: 0;
+}
+
+input:disabled + div.number-spin-btn-container {
+  & > div.number-spin-btn-up:active,
+  & > div.number-spin-btn-down:active {
+    border: {
+      color: $btn-border-highlight $btn-border-shadow $btn-border-shadow $btn-border-highlight;
+      style: solid;
+    }
+    background-color: $btn-bg;
+  }
+  & > div.number-spin-btn-up:before,
+  & > div.number-spin-btn-up:active:before {
+    border-bottom-color: $btn-bg-active;
+    top: 25%;
+    left: 50%;
+  }
+  & > div.number-spin-btn-down:before,
+  & > div.number-spin-btn-down:active:before {
+    border-top-color: $btn-bg-active;
+    top: 75%;
+    left: 50%;
+  }
+}

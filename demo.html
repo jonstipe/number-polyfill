@@ -1,18 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>Number polyfill</title>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>HTML5 Number polyfill</title>
     <meta name="author" content="Jonathan Stipe" />
     <meta name="copyright" content="&copy; 2012 Jonathan Stipe" />
     <link rel="stylesheet" type="text/css" href="number-polyfill.css" />
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script type="text/javascript" src="number-polyfill.js"></script>
     <style type="text/css">
 .hiddenClass {
   visibility: hidden;
 }
+
+.opacityZero {
+  opacity: 0;
+}
+
+.opacityHalf {
+  opacity: 0.5;
+}
+
+.opacityOne {
+  opacity: 1;
+}
+
+.transVisibleClass {
+  opacity: 1;
+
+  -moz-transition: opacity 3s;
+  -webkit-transition: opacity 3s;
+  -o-transition: opacity 3s;
+  transition: opacity 3s;
+}
+
+.transHiddenClass {
+  opacity: 0;
+
+  -moz-transition: opacity 3s;
+  -webkit-transition: opacity 3s;
+  -o-transition: opacity 3s;
+  transition: opacity 3s;
+}
     </style>
+    <script type="text/javascript" src="vendor/jquery/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="number-polyfill.js"></script>
     <script type="text/javascript">
 //<![CDATA[
 $(function(){
@@ -83,11 +113,23 @@ $(function(){
       $(this).attr("value", "Show");
     }
   });
+  
+  $("#hideNumberInputByTransition").click(function(event) {
+    var $elem = $('input[name="numberTransitionHidable"]').first();
+    if ($elem.is(".transHiddenClass")) {
+      $elem.removeClass("transHiddenClass").addClass("transVisibleClass");
+      $(this).attr("value", "Hide");
+    } else {
+      $elem.removeClass("transVisibleClass").addClass("transHiddenClass");
+      $(this).attr("value", "Show");
+    }
+  });
 });
 //]]>
     </script>
 </head>
 <body>
+<div id="demos">
 <form id="form-demo">
   <table>
     <tr>
@@ -109,6 +151,10 @@ $(function(){
     <tr>
       <td>Number which can be hidden by the inline opacity property:</td>
       <td><input name="numberOpacityHidable" type="number" min="0" max="100" /><input name="hideNumberInputByOpacity" id="hideNumberInputByOpacity" type="button" value="Hide"/></td>
+    </tr>
+    <tr>
+      <td>Number which transitions to a hidden state:</td>
+      <td><input name="numberTransitionHidable" type="number" min="0" max="100" /><input name="hideNumberInputByTransition" id="hideNumberInputByTransition" type="button" value="Hide"/></td>
     </tr>
     <tr>
       <td>Number, hidden:</td>
@@ -198,5 +244,8 @@ $(function(){
   <input type="submit" />
   <input type="reset" />
 </form>
+
+<a href="https://github.com/jonstipe/number-polyfill">Back to GitHub repo</a>
+</div>
 </body>
 </html>
