@@ -23,6 +23,10 @@ This script requires [jQuery](http://jquery.com/).
 
 http://jonstipe.github.com/number-polyfill/demo.html
 
+## Test suite
+
+http://jonstipe.github.com/number-polyfill/unittest.html
+
 ## See also
 
 [Compatibility chart for input number elements](http://caniuse.com/input-number)
