@@ -295,11 +295,11 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       releaseFunc = (e) =>
         window.clearTimeout p.timeoutID
         $(document).off 'mouseup', releaseFunc
-        this.off 'mouseleave', releaseFunc
+        $(this).off 'mouseleave', releaseFunc
         return
 
       $(document).on 'mouseup', releaseFunc
-      this.on 'mouseleave', releaseFunc
+      $(this).on 'mouseleave', releaseFunc
 
       p.timeoutID = window.setTimeout(timeoutFunc, 700)
       return

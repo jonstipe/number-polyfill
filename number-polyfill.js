@@ -393,10 +393,10 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
         releaseFunc = function(e) {
           window.clearTimeout(p.timeoutID);
           $(document).off('mouseup', releaseFunc);
-          _this.off('mouseleave', releaseFunc);
+          $(_this).off('mouseleave', releaseFunc);
         };
         $(document).on('mouseup', releaseFunc);
-        this.on('mouseleave', releaseFunc);
+        $(this).on('mouseleave', releaseFunc);
         p.timeoutID = window.setTimeout(timeoutFunc, 700);
       };
       numberPolyfill.prototype.attrMutationHandler = function(name, oldValue, newValue) {
