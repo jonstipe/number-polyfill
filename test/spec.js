@@ -95,6 +95,28 @@
       ok($numberField.next().children().first().is('div.number-spin-btn-up'), "Button container div's first child has class 'number-spin-btn-up'.");
       ok($numberField.next().children().eq(1).is('div.number-spin-btn-down'), "Button container div's second child has class 'number-spin-btn-down'.");
     });
+    test("does not apply multiple times to the same element", 1, function() {
+      var oSrc;
+      oSrc = $numberField.parent().parent().html();
+      $numberField.inputNumber();
+      equal($numberField.parent().parent().html(), oSrc, "HTML is not changed when plugin is applied twice.");
+    });
+    test("throws an error if element is not attached to the DOM.", 1, function() {
+      throws(function() {
+        $("<input/>", {
+          type: "number"
+        }).inputNumber();
+      }, Error, "throws an error");
+    });
+    test("throws an error if element is in an undisplayed element.", 1, function() {
+      $fixture.empty();
+      $fixture.css("display", "none");
+      $fixture.append('<input id="myFixture" name="number" type="number" />');
+      throws(function() {
+        $fixture.children().inputNumber();
+      }, Error, "throws an error");
+      $fixture.css("display", "");
+    });
     test("allows values to be typed in", 1, function() {
       ui.typeIn($numberField, "12345");
       equal($numberField.val(), "12345", "Field value changes.");
