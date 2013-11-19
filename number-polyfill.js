@@ -11,7 +11,11 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
     i.setAttribute("type", "number");
     if (i.type === "text") {
       $.fn.inputNumber = function() {
-        $(this).filter('input[type="number"]').each(function() {
+        $(this).filter(function() {
+          var $this;
+          $this = $(this);
+          return $this.is('input[type="number"]') && !($this.parent().is("span") && $this.next().is("div.number-spin-btn-container") && $this.next().children().first().is("div.number-spin-btn-up") && $this.next().children().eq(1).is("div.number-spin-btn-down"));
+        }).each(function() {
           numberPolyfill.polyfills.push(new numberPolyfill(this));
         });
         return $(this);
@@ -20,6 +24,9 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
         var $fieldContainer, MutationObserver, attrObserver, halfHeight,
           _this = this;
         this.elem = $(elem);
+        if (!(this.elem.is(":root *") && this.elem.height() > 0)) {
+          throw new Error("Element must be in DOM and displayed so that its height can be measured.");
+        }
         halfHeight = (this.elem.outerHeight() / 2) + 'px';
         this.upBtn = $('<div/>', {
           "class": 'number-spin-btn number-spin-btn-up',

@@ -6,13 +6,23 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
   i.setAttribute "type", "number"
   if i.type == "text"
     $.fn.inputNumber = ->
-      $(this).filter('input[type="number"]').each ->
+      $(this).filter ->
+        $this = $(this)
+        return $this.is('input[type="number"]') and not (
+          $this.parent().is("span") &&
+          $this.next().is("div.number-spin-btn-container") &&
+          $this.next().children().first().is("div.number-spin-btn-up") &&
+          $this.next().children().eq(1).is("div.number-spin-btn-down")
+        )
+      .each ->
         numberPolyfill.polyfills.push(new numberPolyfill(this))
         return
       return $(this)
 
     numberPolyfill = (elem)->
       @elem = $(elem)
+      unless @elem.is(":root *") && @elem.height() > 0
+        throw new Error("Element must be in DOM and displayed so that its height can be measured.")
       halfHeight = (@elem.outerHeight() / 2) + 'px'
       @upBtn = $ '<div/>', { class: 'number-spin-btn number-spin-btn-up', style: "height: #{halfHeight}" }
       @downBtn = $ '<div/>', { class: 'number-spin-btn number-spin-btn-down', style: "height: #{halfHeight}" }

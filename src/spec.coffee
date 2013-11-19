@@ -61,6 +61,34 @@
     ok $numberField.next().children().eq(1).is('div.number-spin-btn-down'), "Button container div's second child has class 'number-spin-btn-down'."
     return
   
+  test "does not apply multiple times to the same element", 1, ->
+    oSrc = $numberField.parent().parent().html()
+    $numberField.inputNumber()
+    equal $numberField.parent().parent().html(), oSrc, "HTML is not changed when plugin is applied twice."
+    return
+    
+  test "throws an error if element is not attached to the DOM.", 1, ->
+    throws ->
+      $("<input/>", { type: "number" }).inputNumber()
+      return
+    , Error
+    , "throws an error"
+    return
+
+  test "throws an error if element is in an undisplayed element.", 1, ->
+    $fixture.empty()
+    $fixture.css("display", "none")
+    $fixture.append('<input id="myFixture" name="number" type="number" />')
+    
+    throws ->
+      $fixture.children().inputNumber()
+      return
+    , Error
+    , "throws an error"
+    
+    $fixture.css("display", "")
+    return
+  
   test "allows values to be typed in", 1, ->
     ui.typeIn $numberField, "12345"
     equal $numberField.val(), "12345", "Field value changes."
