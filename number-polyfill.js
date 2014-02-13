@@ -375,16 +375,18 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       numberPolyfill.elemChangeHandler = function(evt) {
         var min, newVal, p, params;
         p = evt.data.p;
-        if (numberPolyfill.isNumber(p.elem.val())) {
-          params = p.getParams();
-          newVal = p.clipValues(params['val'], params['min'], params['max']);
-          newVal = p.stepNormalize(newVal);
-          if (newVal.toString() !== p.elem.val()) {
-            p.elem.val(newVal).change();
+        if (p.elem.val() !== "") {
+          if (numberPolyfill.isNumber(p.elem.val())) {
+            params = p.getParams();
+            newVal = p.clipValues(params['val'], params['min'], params['max']);
+            newVal = p.stepNormalize(newVal);
+            if (newVal.toString() !== p.elem.val()) {
+              p.elem.val(newVal).change();
+            }
+          } else {
+            min = p.elem.attr('min');
+            p.elem.val((min != null) && numberPolyfill.isNumber(min) ? min : "0").change();
           }
-        } else {
-          min = p.elem.attr('min');
-          p.elem.val((min != null) && numberPolyfill.isNumber(min) ? min : "0").change();
         }
       };
       numberPolyfill.elemBtnMousedownHandler = function(evt) {
