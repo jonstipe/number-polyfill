@@ -331,7 +331,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       return
 
     numberPolyfill::increment = () ->
-      unless @elem.is(":disabled")
+      unless @elem.is(":disabled") or @elem.is("[readonly]")
 
         params = @getParams()
         newVal = numberPolyfill.preciseAdd params['val'], params['step']
@@ -343,7 +343,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       return
 
     numberPolyfill::decrement = () ->
-      unless @elem.is(":disabled")
+      unless @elem.is(":disabled") or @elem.is("[readonly]")
 
         params = @getParams()
         newVal = numberPolyfill.preciseSubtract params['val'], params['step']

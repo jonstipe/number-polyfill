@@ -430,7 +430,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       };
       numberPolyfill.prototype.increment = function() {
         var newVal, params;
-        if (!this.elem.is(":disabled")) {
+        if (!(this.elem.is(":disabled") || this.elem.is("[readonly]"))) {
           params = this.getParams();
           newVal = numberPolyfill.preciseAdd(params['val'], params['step']);
           if ((params['max'] != null) && parseFloat(newVal) > parseFloat(params['max'])) {
@@ -442,7 +442,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       };
       numberPolyfill.prototype.decrement = function() {
         var newVal, params;
-        if (!this.elem.is(":disabled")) {
+        if (!(this.elem.is(":disabled") || this.elem.is("[readonly]"))) {
           params = this.getParams();
           newVal = numberPolyfill.preciseSubtract(params['val'], params['step']);
           if ((params['min'] != null) && parseFloat(newVal) < parseFloat(params['min'])) {
