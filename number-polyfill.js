@@ -368,23 +368,25 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
           p.increment();
         } else if (evt.keyCode === 40) {
           p.decrement();
-        } else if (((_ref = evt.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39 && _ref !== 46) && ((_ref1 = evt.which) !== 45 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
+        } else if (((_ref = evt.keyCode) !== 8 && _ref !== 9 && _ref !== 35 && _ref !== 36 && _ref !== 37 && _ref !== 39 && _ref !== 46) && ((_ref1 = evt.which) !== 45 && _ref1 !== 46 && _ref1 !== 48 && _ref1 !== 49 && _ref1 !== 50 && _ref1 !== 51 && _ref1 !== 52 && _ref1 !== 53 && _ref1 !== 54 && _ref1 !== 55 && _ref1 !== 56 && _ref1 !== 57)) {
           evt.preventDefault();
         }
       };
       numberPolyfill.elemChangeHandler = function(evt) {
         var min, newVal, p, params;
         p = evt.data.p;
-        if (numberPolyfill.isNumber(p.elem.val())) {
-          params = p.getParams();
-          newVal = p.clipValues(params['val'], params['min'], params['max']);
-          newVal = p.stepNormalize(newVal);
-          if (newVal.toString() !== p.elem.val()) {
-            p.elem.val(newVal).change();
+        if (p.elem.val() !== "") {
+          if (numberPolyfill.isNumber(p.elem.val())) {
+            params = p.getParams();
+            newVal = p.clipValues(params['val'], params['min'], params['max']);
+            newVal = p.stepNormalize(newVal);
+            if (newVal.toString() !== p.elem.val()) {
+              p.elem.val(newVal).change();
+            }
+          } else {
+            min = p.elem.attr('min');
+            p.elem.val((min != null) && numberPolyfill.isNumber(min) ? min : "0").change();
           }
-        } else {
-          min = p.elem.attr('min');
-          p.elem.val((min != null) && numberPolyfill.isNumber(min) ? min : "0").change();
         }
       };
       numberPolyfill.elemBtnMousedownHandler = function(evt) {
@@ -430,7 +432,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       };
       numberPolyfill.prototype.increment = function() {
         var newVal, params;
-        if (!this.elem.is(":disabled")) {
+        if (!(this.elem.is(":disabled") || this.elem.is("[readonly]"))) {
           params = this.getParams();
           newVal = numberPolyfill.preciseAdd(params['val'], params['step']);
           if ((params['max'] != null) && parseFloat(newVal) > parseFloat(params['max'])) {
@@ -442,7 +444,7 @@ HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-poly
       };
       numberPolyfill.prototype.decrement = function() {
         var newVal, params;
-        if (!this.elem.is(":disabled")) {
+        if (!(this.elem.is(":disabled") || this.elem.is("[readonly]"))) {
           params = this.getParams();
           newVal = numberPolyfill.preciseSubtract(params['val'], params['step']);
           if ((params['min'] != null) && parseFloat(newVal) < parseFloat(params['min'])) {
