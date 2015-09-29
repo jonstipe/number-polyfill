@@ -2,9 +2,14 @@
 HTML5 Number polyfill | Jonathan Stipe | https://github.com/jonstipe/number-polyfill
 ###
 (($) ->
-  i = document.createElement "input"
-  i.setAttribute "type", "number"
-  if i.type == "text"
+  isLackingNumberInputSupport = ->
+    testInput = document.createElement "input"
+    testInput.setAttribute "type", "number"
+    testValue = "123foo"
+    testInput.value = testValue
+    return testInput.value == testValue
+
+  if isLackingNumberInputSupport()
     $.fn.inputNumber = ->
       $(this).filter ->
         $this = $(this)
